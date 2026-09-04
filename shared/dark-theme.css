@@ -1,0 +1,408 @@
+/* ============================================
+   DARK THEME - 深色主题（黑底白字）
+   ============================================ */
+
+/* 全局背景和文字 */
+body {
+  background: #0a0a0a !important;
+  color: #ffffff !important;
+}
+
+/* 主内容区域 */
+.mobile-content {
+  background: #0a0a0a !important;
+}
+
+/* 卡片 */
+.card {
+  background: #1a1a1a !important;
+  border: 1px solid #333 !important;
+  color: #ffffff !important;
+}
+
+.card h3,
+.card h4 {
+  color: #ffffff !important;
+}
+
+/* Tab Views */
+.tab-view {
+  background: #0a0a0a !important;
+}
+
+/* 表格按钮 */
+.table-btn {
+  background: #1a1a1a !important;
+  color: #ffffff !important;
+  border: 2px solid #333 !important;
+}
+
+.table-btn.selected {
+  background: #4a90e2 !important;
+  border-color: #4a90e2 !important;
+  color: #ffffff !important;
+}
+
+/* 位置按钮 */
+.position-btn {
+  background: #1a1a1a !important;
+  color: #ffffff !important;
+  border: 2px solid #333 !important;
+}
+
+.position-btn.selected {
+  background: #5a4fb0 !important;
+  border-color: #5a4fb0 !important;
+  color: #ffffff !important;
+}
+
+/* 位置状态显示 */
+.position-status {
+  background: #1a1a1a !important;
+  border: 1px solid #333 !important;
+}
+
+.status-item {
+  border-bottom: 1px solid #333 !important;
+}
+
+.status-label {
+  color: #aaaaaa !important;
+}
+
+.status-value {
+  color: #ffffff !important;
+}
+
+/* 扫描区域 */
+.scan-section {
+  background: #1a1a1a !important;
+  border: 1px solid #333 !important;
+}
+
+/* 提示文本 */
+.hint-text {
+  color: #888 !important;
+}
+
+/* 输入框和选择框 */
+input[type="text"],
+input[type="number"],
+textarea,
+select,
+.mobile-select {
+  background: #1a1a1a !important;
+  color: #ffffff !important;
+  border: 1px solid #333 !important;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: #666 !important;
+}
+
+/* 统计卡片 */
+.stat-card {
+  background: #1a1a1a !important;
+  border: 2px solid #333 !important;
+  color: #ffffff !important;
+}
+
+.stat-card.production {
+  background: #0d2818 !important;
+  border-color: #2e9e56 !important;
+}
+
+.stat-card.huot {
+  background: #2d1f00 !important;
+  border-color: #f57c00 !important;
+}
+
+.stat-card.entretien {
+  background: #2d1500 !important;
+  border-color: #e65100 !important;
+}
+
+.stat-card.pret {
+  background: #0d2d1c !important;
+  border-color: #4caf50 !important;
+}
+
+.stat-card.remise {
+  background: #1a1a1a !important;
+  border-color: #666 !important;
+}
+
+.stat-card.rebute {
+  background: #2d0d0d !important;
+  border-color: #d32f2f !important;
+}
+
+.stat-value {
+  color: #ffffff !important;
+}
+
+.stat-label {
+  color: #cccccc !important;
+}
+
+/* 表格状态卡片 */
+.table-status-card {
+  background: #1a1a1a !important;
+  border: 1px solid #333 !important;
+}
+
+.table-status-header {
+  color: #ffffff !important;
+}
+
+.table-status-bar {
+  background: #333 !important;
+}
+
+/* Piece 列表 */
+.piece-list {
+  background: transparent !important;
+}
+
+.piece-item {
+  background: #1a1a1a !important;
+  border: 2px solid #333 !important;
+  color: #ffffff !important;
+}
+
+.piece-item.mise-en-production {
+  border-left: 4px solid #2e9e56 !important;
+  background: #0d2818 !important;
+}
+
+.piece-item.chez-huot {
+  border-left: 4px solid #f57c00 !important;
+  background: #2d1f00 !important;
+}
+
+.piece-item.inventaire-à-entretenir {
+  border-left: 4px solid #e65100 !important;
+  background: #2d1500 !important;
+}
+
+.piece-item.remisé {
+  border-left: 4px solid #666 !important;
+  background: #1a1a1a !important;
+}
+
+.piece-item.rebuté {
+  border-left: 4px solid #d32f2f !important;
+  background: #2d0d0d !important;
+}
+
+.piece-item.prêt {
+  border-left: 4px solid #4caf50 !important;
+  background: #0d2d1c !important;
+}
+
+.piece-info {
+  color: #ffffff !important;
+}
+
+.piece-info small {
+  color: #aaaaaa !important;
+}
+
+/* 按钮 */
+.btn-action {
+  background: #2a2a2a !important;
+  color: #ffffff !important;
+  border: 1px solid #444 !important;
+}
+
+.btn-action:active {
+  background: #333 !important;
+}
+
+.btn-primary {
+  background: #1a2b45 !important;
+  color: #ffffff !important;
+}
+
+.btn-primary:active {
+  background: #0f1d2e !important;
+}
+
+.btn-secondary {
+  background: #2a2a2a !important;
+  color: #ffffff !important;
+  border: 1px solid #444 !important;
+}
+
+.btn-secondary:active {
+  background: #333 !important;
+}
+
+/* Admin 区域 */
+.admin-section {
+  background: #1a1a1a !important;
+  border: 1px solid #333 !important;
+}
+
+/* 消息框 */
+.message {
+  color: #ffffff !important;
+}
+
+.message.error {
+  background: #4a0000 !important;
+  border: 1px solid #8b0000 !important;
+}
+
+.message.success {
+  background: #004a00 !important;
+  border: 1px solid #008b00 !important;
+}
+
+/* Loading */
+.loading {
+  color: #888 !important;
+}
+
+/* 筛选栏 */
+.filter-bar input,
+.filter-bar select {
+  background: #1a1a1a !important;
+  color: #ffffff !important;
+  border: 1px solid #333 !important;
+}
+
+/* 表格 */
+table {
+  color: #ffffff !important;
+}
+
+thead tr {
+  background: #1a2b45 !important;
+}
+
+th {
+  color: #ffffff !important;
+  border-bottom: 2px solid #2c3e50 !important;
+}
+
+td {
+  border-bottom: 1px solid #333 !important;
+}
+
+tbody tr {
+  background: #1a1a1a !important;
+}
+
+tbody tr:hover {
+  background: #222 !important;
+}
+
+/* 扫描界面按钮 */
+.apex-scan-big,
+.apex-primary,
+.apex-btn-save {
+  background: #1a2b45 !important;
+  color: #ffffff !important;
+  border: none !important;
+}
+
+.apex-scan-big:active,
+.apex-primary:active,
+.apex-btn-save:active {
+  background: #0f1d2e !important;
+}
+
+/* 手动输入区域 */
+.apex-manual-section {
+  background: #1a1a1a !important;
+  border: 1px solid #333 !important;
+}
+
+.apex-manual-label {
+  color: #ffffff !important;
+}
+
+.apex-manual-input-large {
+  background: #1a1a1a !important;
+  color: #ffffff !important;
+  border: 1px solid #333 !important;
+}
+
+/* 扫描状态 */
+.apex-status {
+  color: #ffffff !important;
+  background: #1a1a1a !important;
+}
+
+/* Toast 通知 */
+.toast {
+  background: #1a2b45 !important;
+  color: #ffffff !important;
+}
+
+.toast.error {
+  background: #8b0000 !important;
+}
+
+.toast.success {
+  background: #2e9e56 !important;
+}
+
+/* 底部导航 */
+.bottom-nav {
+  background: #1a1a1a !important;
+  border-top: 1px solid #333 !important;
+}
+
+.nav-item {
+  color: #888 !important;
+}
+
+.nav-item.active {
+  color: #4a90e2 !important;
+}
+
+.nav-label {
+  color: inherit !important;
+}
+
+/* 模态框 */
+.modal {
+  background: #1a1a1a !important;
+  color: #ffffff !important;
+  border: 1px solid #333 !important;
+}
+
+.modal h3 {
+  color: #ffffff !important;
+}
+
+.modal-overlay {
+  background: rgba(0, 0, 0, 0.85) !important;
+}
+
+/* Config 页面信息框 */
+.card > div[style*="background:#f5f5f5"],
+.card > div[style*="background:#e3f2fd"] {
+  background: #1a1a1a !important;
+  border: 1px solid #333 !important;
+}
+
+.card p strong {
+  color: #ffffff !important;
+}
+
+/* 确保所有文本都是白色 */
+* {
+  color: inherit;
+}
+
+p, span, div, label, a {
+  color: #ffffff !important;
+}
+
+small {
+  color: #aaaaaa !important;
+}

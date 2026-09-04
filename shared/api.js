@@ -3,12 +3,14 @@
 const SUPABASE_URL = 'https://oopxhatozrtputqvylsn.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9vcHhoYXRvenJ0cHV0cXZ5bHNuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODc3OTE3OTksImV4cCI6MjEwMzM2Nzc5OX0.uf-9JRqgd6NkgoRHGBYA5y2H1_gPMXyQ1rzkbZBv3ps';
 
-// New Status System
+// New Status System (6 statuses)
 const STATUTS = [
   'Mise en production',       // Installed on table
   'Chez Huot',               // At external maintenance facility
   'Inventaire - À entretenir', // In inventory, needs maintenance
-  'Remisé'                   // Removed/Idle (not in maintenance, not on table)
+  'Remisé',                  // Removed/Idle (not in maintenance, not on table)
+  'Rebuté',                  // Scrapped (manually set)
+  'Prêt'                     // Ready (auto: table has pieces + no maintenance needed)
 ];
 
 // Maintenance Types

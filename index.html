@@ -11,6 +11,7 @@
 <link rel="apple-touch-icon" href="shared/icon-192.png">
 <link rel="stylesheet" href="shared/mobile.css">
 <link rel="stylesheet" href="shared/mobile-v2-additions.css">
+<link rel="stylesheet" href="shared/dark-theme.css">
 </head>
 <body>
 <!-- Header -->
@@ -134,9 +135,17 @@
           <div class="stat-value" id="stat-entretien">0</div>
           <div class="stat-label">À entretenir</div>
         </div>
-        <div class="stat-card pret" onclick="filterByStatut('Remisé')">
+        <div class="stat-card pret" onclick="filterByStatut('Prêt')">
+          <div class="stat-value" id="stat-pret">0</div>
+          <div class="stat-label">Prêt</div>
+        </div>
+        <div class="stat-card remise" onclick="filterByStatut('Remisé')">
           <div class="stat-value" id="stat-remise">0</div>
           <div class="stat-label">Remisé</div>
+        </div>
+        <div class="stat-card rebute" onclick="filterByStatut('Rebuté')">
+          <div class="stat-value" id="stat-rebute">0</div>
+          <div class="stat-label">Rebuté</div>
         </div>
       </div>
     </div>
@@ -158,7 +167,9 @@
         <option value="Mise en production">Mise en production</option>
         <option value="Chez Huot">Chez Huot</option>
         <option value="Inventaire - À entretenir">À entretenir</option>
+        <option value="Prêt">Prêt</option>
         <option value="Remisé">Remisé</option>
+        <option value="Rebuté">Rebuté</option>
       </select>
     </div>
 
@@ -179,7 +190,9 @@
         <option value="Mise en production">Mise en production</option>
         <option value="Chez Huot">Chez Huot</option>
         <option value="Inventaire - À entretenir">À entretenir</option>
+        <option value="Prêt">Prêt</option>
         <option value="Remisé">Remisé</option>
+        <option value="Rebuté">Rebuté</option>
       </select>
     </div>
 
