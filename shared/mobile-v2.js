@@ -122,9 +122,26 @@ function switchTab(tabName) {
 // ============================================
 function renderTableGrid() {
   const grid = document.getElementById('table-grid');
-  grid.innerHTML = allTables.map(table => `
+  const searchEl = document.getElementById('table-search');
+  const filtre = searchEl ? searchEl.value.trim().toLowerCase() : '';
+
+  const tables = filtre
+    ? allTables.filter(t => t.nom.toLowerCase().includes(filtre))
+    : allTables;
+
+  if (tables.length === 0) {
+    grid.innerHTML = '<p class="hint-text" style="grid-column:1/-1;">Aucune table trouvée</p>';
+    return;
+  }
+
+  grid.innerHTML = tables.map(table => `
     <button class="table-btn" onclick="selectTable('${table.id}')">${table.nom}</button>
   `).join('');
+}
+
+// Recherche de table par nom (barre de recherche du scan)
+function filterTableGrid() {
+  renderTableGrid();
 }
 
 function selectTable(tableId) {
@@ -727,13 +744,13 @@ function filterMoulds() {
     const statutEffectif = getStatutEffectif(moule);
     const statusClass = statutEffectif.replace(/\s+/g, '-').toLowerCase();
     const positionInfo = moule.position_id ?
-      `<br><small>Table ${moule.table_nom} — Position ${getPositionNumber(moule.position_id)}</small>` : '';
+      `<div class="piece-pos">Table ${moule.table_nom} — Position ${getPositionNumber(moule.position_id)}</div>` : '';
 
     return `
       <div class="piece-item ${statusClass}">
         <div class="piece-info">
-          <strong>${moule.no_moule}</strong> — ${moule.table_nom}
-          <br><small>${libelleStatut(statutEffectif)}</small>
+          <div class="piece-name">${moule.no_moule} — ${moule.table_nom}</div>
+          <div class="piece-status">${libelleStatut(statutEffectif)}</div>
           ${positionInfo}
         </div>
         <button class="btn-action" onclick="showMouleActions('${moule.id}')">⋯</button>
@@ -795,13 +812,13 @@ function filterSeats() {
     const statutEffectif = getStatutEffectif(seat);
     const statusClass = statutEffectif.replace(/\s+/g, '-').toLowerCase();
     const positionInfo = seat.position_id ?
-      `<br><small>Table ${seat.table_nom} — Position ${getPositionNumber(seat.position_id)}</small>` : '';
+      `<div class="piece-pos">Table ${seat.table_nom} — Position ${getPositionNumber(seat.position_id)}</div>` : '';
 
     return `
       <div class="piece-item ${statusClass}">
         <div class="piece-info">
-          <strong>${seat.no_seat}</strong> — ${seat.table_nom}
-          <br><small>${libelleStatut(statutEffectif)}</small>
+          <div class="piece-name">${seat.no_seat} — ${seat.table_nom}</div>
+          <div class="piece-status">${libelleStatut(statutEffectif)}</div>
           ${positionInfo}
         </div>
         <button class="btn-action" onclick="showSeatActions('${seat.id}')">⋯</button>
@@ -847,7 +864,7 @@ function filterHistory(history = null) {
   const filterType = document.getElementById('history-filter-type').value;
 
   const filtered = history.filter(h => {
-    const matchPiece = h.no_piece.toLowerCase().includes(filterPiece);
+    const matchPiece = (h.no_piece || '').toLowerCase().includes(filterPiece);
     const matchType = !filterType || h.type_piece === filterType;
     return matchPiece && matchType;
   });
@@ -855,19 +872,31 @@ function filterHistory(history = null) {
   const tbody = document.getElementById('history-table-body');
 
   if (filtered.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="5" style="padding:1rem;text-align:center;color:#888;">Aucun historique</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="6" style="padding:1rem;text-align:center;color:#888;">Aucun historique</td></tr>';
     return;
   }
 
-  tbody.innerHTML = filtered.map(h => `
-    <tr>
-      <td style="padding:0.5rem;">${h.type_piece === 'moule' ? '🔧' : '🪑'} ${h.type_piece}</td>
-      <td style="padding:0.5rem;"><strong>${h.no_piece}</strong></td>
-      <td style="padding:0.5rem;">${h.type_action}</td>
-      <td style="padding:0.5rem;">${h.table_nom || '—'} ${h.position_number || ''}</td>
-      <td style="padding:0.5rem;font-size:0.75rem;">${new Date(h.created_at).toLocaleString('fr-CA')}</td>
-    </tr>
-  `).join('');
+  const fmt = d => d ? new Date(d).toLocaleString('fr-CA', { dateStyle: 'short', timeStyle: 'short' }) : '';
+
+  tbody.innerHTML = filtered.map(h => {
+    // Retrouver la table (lettre) et la position (1-5) de cet enregistrement
+    const piece = [...allMoulds, ...allSeats].find(p => p.id === h.piece_id);
+    const tableNom = piece ? piece.table_nom : (h.table_nom || '—');
+    const position = h.position_id ? getPositionNumber(h.position_id) : '—';
+    const icone = h.type_piece === 'moule' ? '🔧' : (h.type_piece === 'seat' ? '🪑' : '');
+    const endDate = h.fin_statut ? fmt(h.fin_statut) : '<span style="color:#4caf50;">En cours</span>';
+
+    return `
+      <tr>
+        <td style="padding:0.5rem;"><strong>${icone} ${h.no_piece || '—'}</strong></td>
+        <td style="padding:0.5rem;">${tableNom}</td>
+        <td style="padding:0.5rem;">${position}</td>
+        <td style="padding:0.5rem;">${libelleStatut(h.nouveau_statut || '—')}</td>
+        <td style="padding:0.5rem;font-size:0.75rem;">${fmt(h.debut_statut || h.created_at)}</td>
+        <td style="padding:0.5rem;font-size:0.75rem;">${endDate}</td>
+      </tr>
+    `;
+  }).join('');
 }
 
 // ============================================

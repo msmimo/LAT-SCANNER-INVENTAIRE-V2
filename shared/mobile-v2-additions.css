@@ -363,24 +363,55 @@
 
 .piece-info {
   flex: 1;
-  font-size: 14px;
-  line-height: 1.5;
+  line-height: 1.35;
+}
+
+.piece-name {
+  font-size: 19px;
+  font-weight: 700;
+  color: #1a2b45;
+}
+
+.piece-status {
+  font-size: 15px;
+  font-weight: 600;
+  color: #555;
+  margin-top: 2px;
+}
+
+.piece-pos {
+  font-size: 12px;
+  color: #888;
+  margin-top: 2px;
 }
 
 .btn-action {
-  background: #f5f5f5;
+  flex: 0 0 auto;
+  background: transparent;
   border: none;
   border-radius: 6px;
-  padding: 0.5rem 1rem;
-  font-size: 18px;
+  padding: 2px 6px;
+  font-size: 20px;
+  line-height: 1;
   cursor: pointer;
-  color: #666;
+  color: #999;
   transition: all 0.2s ease;
 }
 
 .btn-action:active {
   background: #e0e0e0;
-  transform: scale(0.95);
+  transform: scale(0.9);
+}
+
+/* Barre de recherche de table (scan) */
+.table-search-input {
+  width: 100%;
+  padding: 0.7rem 0.9rem;
+  margin: 0.25rem 0 0.75rem;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  font-size: 15px;
+  box-sizing: border-box;
 }
 
 /* Admin Section */

@@ -9,9 +9,9 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>LAT Scanner Inventaire V2</title>
 <link rel="apple-touch-icon" href="shared/icon-192.png">
-<link rel="stylesheet" href="shared/mobile.css?v=8">
-<link rel="stylesheet" href="shared/mobile-v2-additions.css?v=8">
-<link rel="stylesheet" href="shared/dark-theme.css?v=8">
+<link rel="stylesheet" href="shared/mobile.css?v=9">
+<link rel="stylesheet" href="shared/mobile-v2-additions.css?v=9">
+<link rel="stylesheet" href="shared/dark-theme.css?v=9">
 </head>
 <body>
 <!-- Header -->
@@ -27,6 +27,7 @@
     <!-- Table Selection -->
     <div class="card">
       <h3>🏭 Sélection de table</h3>
+      <input id="table-search" type="text" class="table-search-input" placeholder="🔍 Rechercher une table (ex: A, B...)" oninput="filterTableGrid()">
       <div class="table-grid" id="table-grid">
         <!-- Tables A-R will be generated here -->
       </div>
@@ -261,15 +262,16 @@
         <table style="width:100%;border-collapse:collapse;font-size:0.85rem;">
           <thead>
             <tr style="background:#1a2b45;">
-              <th style="padding:0.5rem;text-align:left;border-bottom:2px solid #2c3e50;color:#ffffff;">Type</th>
               <th style="padding:0.5rem;text-align:left;border-bottom:2px solid #2c3e50;color:#ffffff;">No. Pièce</th>
-              <th style="padding:0.5rem;text-align:left;border-bottom:2px solid #2c3e50;color:#ffffff;">Action</th>
               <th style="padding:0.5rem;text-align:left;border-bottom:2px solid #2c3e50;color:#ffffff;">Table</th>
-              <th style="padding:0.5rem;text-align:left;border-bottom:2px solid #2c3e50;color:#ffffff;">Date</th>
+              <th style="padding:0.5rem;text-align:left;border-bottom:2px solid #2c3e50;color:#ffffff;">Position</th>
+              <th style="padding:0.5rem;text-align:left;border-bottom:2px solid #2c3e50;color:#ffffff;">Statut</th>
+              <th style="padding:0.5rem;text-align:left;border-bottom:2px solid #2c3e50;color:#ffffff;">Start Date</th>
+              <th style="padding:0.5rem;text-align:left;border-bottom:2px solid #2c3e50;color:#ffffff;">End Date</th>
             </tr>
           </thead>
           <tbody id="history-table-body">
-            <tr><td colspan="5" style="padding:1rem;text-align:center;color:#888;">Chargement...</td></tr>
+            <tr><td colspan="6" style="padding:1rem;text-align:center;color:#888;">Chargement...</td></tr>
           </tbody>
         </table>
       </div>
@@ -382,7 +384,7 @@
 <div id="toast" class="toast" role="alert" aria-live="polite"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
-<script src="shared/api.js?v=8"></script>
-<script src="shared/mobile-v2.js?v=8"></script>
+<script src="shared/api.js?v=9"></script>
+<script src="shared/mobile-v2.js?v=9"></script>
 </body>
 </html>
