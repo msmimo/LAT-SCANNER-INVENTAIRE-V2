@@ -56,41 +56,48 @@ body {
   color: #ffffff !important;
 }
 
-/* 桌子地图 (table map) */
+/* 桌子地图 (table map) — 保持浅色卡片外观(仿设计图),深蓝底 */
+#position-card {
+  background: #1a2b45 !important;
+  border: 1px solid #24375a !important;
+}
+
 .map-label {
-  color: #888 !important;
+  color: #9aa3b2 !important;
 }
 
 .map-cell {
-  background: #1a1a1a !important;
-  border: 2px solid #333 !important;
+  background: #c9ccd4 !important;
+  border: none !important;
 }
 
 .map-cell-pos {
-  color: #ffffff !important;
+  color: #1a2b45 !important;
 }
 
 .map-cell-no {
-  color: #4caf50 !important;
+  color: #1b7a34 !important;
 }
 
 .map-cell.filled {
-  background: #0d2818 !important;
-  border-color: #2e9e56 !important;
+  background: #c9ccd4 !important;
 }
 
 .map-cell.selected {
-  border-color: #4a90e2 !important;
-  box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.5) !important;
+  box-shadow: 0 0 0 3px #4a90e2, 0 2px 6px rgba(0, 0, 0, 0.35) !important;
 }
 
 .position-active-panel {
-  background: #1a1a1a !important;
-  border: 1px solid #333 !important;
+  background: #f7f8fa !important;
+  border: none !important;
 }
 
 .pa-title {
-  color: #aaaaaa !important;
+  color: #1a2b45 !important;
+}
+
+.position-active-panel .hint-text {
+  color: #888 !important;
 }
 
 /* 位置状态显示 */
