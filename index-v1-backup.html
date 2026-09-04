@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#1a2b45">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>LAT Scanner Mobile</title>
+<link rel="apple-touch-icon" href="shared/icon-192.png">
+<link rel="stylesheet" href="shared/mobile.css">
+</head>
+<body>
+<!-- Header -->
+<header class="mobile-header">
+  <h1 id="page-title">Scanner</h1>
+</header>
+
+<!-- Main Content Area -->
+<main class="mobile-content">
+  <!-- Tab 1: Scan View (APEX1 Design) -->
+  <div id="tab-scan" class="tab-view active">
+
+    <!-- Legend -->
+    <div class="apex-legend">
+      <div class="legend-item"><div class="legend-swatch" style="background:#cccccc"></div>Non scanné</div>
+      <div class="legend-item"><div class="legend-swatch" style="background:#5a4fb0"></div>Sélectionné</div>
+      <div class="legend-item"><div class="legend-swatch" style="background:#2e9e56"></div>Enregistré</div>
+    </div>
+
+    <!-- Table Layout -->
+    <div class="apex-table-section">
+      <div class="apex-dir-label">— NORD —</div>
+      <div class="apex-position-row">
+        <div class="apex-position-box" data-pos="M1" onclick="selectPositionAPEX('M1')">
+          <div class="apex-position-label">#1</div>
+          <div class="apex-position-code">M1</div>
+          <div class="apex-position-value" id="apex-val-M1"></div>
+        </div>
+        <div class="apex-position-box" data-pos="M2" onclick="selectPositionAPEX('M2')">
+          <div class="apex-position-label">#2</div>
+          <div class="apex-position-code">M2</div>
+          <div class="apex-position-value" id="apex-val-M2"></div>
+        </div>
+        <div class="apex-position-box" data-pos="M3" onclick="selectPositionAPEX('M3')">
+          <div class="apex-position-label">#3</div>
+          <div class="apex-position-code">M3</div>
+          <div class="apex-position-value" id="apex-val-M3"></div>
+        </div>
+        <div class="apex-position-box" data-pos="M4" onclick="selectPositionAPEX('M4')">
+          <div class="apex-position-label">#4</div>
+          <div class="apex-position-code">M4</div>
+          <div class="apex-position-value" id="apex-val-M4"></div>
+        </div>
+        <div class="apex-position-box" data-pos="M5" onclick="selectPositionAPEX('M5')">
+          <div class="apex-position-label">#5</div>
+          <div class="apex-position-code">M5</div>
+          <div class="apex-position-value" id="apex-val-M5"></div>
+        </div>
+      </div>
+
+      <div class="apex-position-row">
+        <div class="apex-position-box" data-pos="S1" onclick="selectPositionAPEX('S1')">
+          <div class="apex-position-code">S1</div>
+          <div class="apex-position-value" id="apex-val-S1"></div>
+        </div>
+        <div class="apex-position-box" data-pos="S2" onclick="selectPositionAPEX('S2')">
+          <div class="apex-position-code">S2</div>
+          <div class="apex-position-value" id="apex-val-S2"></div>
+        </div>
+        <div class="apex-position-box" data-pos="S3" onclick="selectPositionAPEX('S3')">
+          <div class="apex-position-code">S3</div>
+          <div class="apex-position-value" id="apex-val-S3"></div>
+        </div>
+        <div class="apex-position-box" data-pos="S4" onclick="selectPositionAPEX('S4')">
+          <div class="apex-position-code">S4</div>
+          <div class="apex-position-value" id="apex-val-S4"></div>
+        </div>
+        <div class="apex-position-box" data-pos="S5" onclick="selectPositionAPEX('S5')">
+          <div class="apex-position-code">S5</div>
+          <div class="apex-position-value" id="apex-val-S5"></div>
+        </div>
+      </div>
+      <div class="apex-dir-label">— SUD —</div>
+    </div>
+
+    <!-- Action Panel -->
+    <div class="apex-panel">
+      <div class="apex-panel-header">
+        <div class="apex-panel-label">Position active</div>
+        <span class="apex-panel-tag" id="apex-active-tag" style="display:none"></span>
+      </div>
+      <p class="apex-panel-empty" id="apex-hint-text">Appuyez sur une position ci-dessus</p>
+
+      <div id="apex-scan-section" style="display:none">
+        <div class="apex-cam-area" id="apex-cam-area" style="display:none">
+          <video id="apex-video" playsinline autoplay muted></video>
+          <div class="apex-scan-overlay">
+            <div class="apex-scan-frame">
+              <div class="apex-scan-line"></div>
+              <div class="apex-found-flash" id="apex-found-flash"></div>
+            </div>
+          </div>
+        </div>
+        <div class="apex-status" id="apex-scan-status" style="display:none"></div>
+        <div class="apex-btn-row">
+          <button class="apex-scan-big" id="apex-scan-btn" onclick="startAPEXScan()">▶ Scanner</button>
+        </div>
+        <div class="apex-btn-row">
+          <button class="apex-primary" onclick="toggleAPEXManual()">✎ Saisie manuelle</button>
+        </div>
+        <div class="apex-manual-section" id="apex-manual-row" style="display:none">
+          <label class="apex-manual-label">Numéro de pièce:</label>
+          <input type="text" id="apex-manual-input" placeholder="Entrez le numéro..." inputmode="numeric" class="apex-manual-input-large"/>
+          <button class="apex-btn-save" onclick="saveAPEXManual()">✓ Enregistrer</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Hidden elements for compatibility -->
+    <div style="display:none;">
+      <select id="mobile-select-table"></select>
+      <select id="mobile-select-position"></select>
+    </div>
+
+  </div>
+
+  <!-- Tab 2: Dashboard View -->
+  <div id="tab-dashboard" class="tab-view">
+    <div class="stats-grid">
+      <div class="stat-card pret" onclick="showStatutDetails('Inventaire - Prêt')">
+        <div class="stat-value" id="stat-pret">0</div>
+        <div class="stat-label">Inventaire - Prêt</div>
+      </div>
+      <div class="stat-card production" onclick="showStatutDetails('DC74')">
+        <div class="stat-value" id="stat-dc74">0</div>
+        <div class="stat-label">DC74</div>
+      </div>
+      <div class="stat-card production" onclick="showStatutDetails('DC75')">
+        <div class="stat-value" id="stat-dc75">0</div>
+        <div class="stat-label">DC75</div>
+      </div>
+      <div class="stat-card entretien" onclick="showStatutDetails('Inventaire - À entretenir')">
+        <div class="stat-value" id="stat-entretien">0</div>
+        <div class="stat-label">À entretenir</div>
+      </div>
+      <div class="stat-card huot" onclick="showStatutDetails('Chez Huot')">
+        <div class="stat-value" id="stat-huot">0</div>
+        <div class="stat-label">Chez Huot</div>
+      </div>
+      <div class="stat-card rebutee" onclick="showStatutDetails('Remisée - Rebutée')">
+        <div class="stat-value" id="stat-rebutee">0</div>
+        <div class="stat-label">Remisée - Rebutée</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3 style="color: white;">Vue par table</h3>
+      <select id="dashboard-table-select" class="mobile-select" onchange="chargerDashboardTable()"></select>
+      <div id="dashboard-positions" class="positions-grid"></div>
+    </div>
+  </div>
+
+  <!-- Tab 3: Parts Status View -->
+  <div id="tab-pieces" class="tab-view">
+    <div class="filter-bar">
+      <input id="pieces-filter" type="text" placeholder="Filtrer par No. pièce" inputmode="numeric">
+    </div>
+
+    <div class="status-sections">
+      <div class="status-section">
+        <div class="section-header pret">
+          <h3>Inventaire - Prêt</h3>
+          <span class="count" id="count-pret">0</span>
+        </div>
+        <div class="piece-list" id="list-pret"></div>
+      </div>
+
+      <div class="status-section">
+        <div class="section-header production">
+          <h3>DC74</h3>
+          <span class="count" id="count-dc74">0</span>
+        </div>
+        <div class="piece-list" id="list-dc74"></div>
+      </div>
+
+      <div class="status-section">
+        <div class="section-header production">
+          <h3>DC75</h3>
+          <span class="count" id="count-dc75">0</span>
+        </div>
+        <div class="piece-list" id="list-dc75"></div>
+      </div>
+
+      <div class="status-section">
+        <div class="section-header entretien">
+          <h3>Inventaire - À entretenir</h3>
+          <span class="count" id="count-entretien">0</span>
+        </div>
+        <div class="piece-list" id="list-entretien"></div>
+      </div>
+
+      <div class="status-section">
+        <div class="section-header huot">
+          <h3>Chez Huot</h3>
+          <span class="count" id="count-huot-pieces">0</span>
+        </div>
+        <div class="piece-list" id="list-huot"></div>
+      </div>
+
+      <div class="status-section">
+        <div class="section-header rebutee">
+          <h3>Remisée - Rebutée</h3>
+          <span class="count" id="count-rebutee">0</span>
+        </div>
+        <div class="piece-list" id="list-rebutee"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tab 4: Huot Warehouse View -->
+  <div id="tab-huot" class="tab-view">
+    <div class="card">
+      <h3>Expédier vers Huot</h3>
+      <input id="huot-piece-input" type="text" inputmode="numeric" placeholder="Scanner ou saisir No. pièce">
+      <button class="btn-primary" onclick="expedierVersHuot()">Confirmer l'expédition</button>
+      <p id="huot-message" class="message"></p>
+    </div>
+
+    <div class="card">
+      <h3>Pièces chez Huot</h3>
+      <div id="huot-pieces-list" class="piece-list">
+        <p class="loading">Chargement...</p>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Expéditions récentes</h3>
+      <div id="huot-expeditions" class="history-list">
+        <p class="loading">Chargement...</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tab 5: History View -->
+  <div id="tab-history" class="tab-view">
+    <div class="card">
+      <h3>History — Historique complet</h3>
+      <input id="history-filter-piece" type="text" placeholder="Filtrer par No. pièce" inputmode="numeric" style="margin-bottom:1rem;">
+      <select id="history-filter-status" style="width:100%;margin-bottom:1rem;">
+        <option value="">Tous les statuts</option>
+      </select>
+    </div>
+
+    <div class="card">
+      <div style="overflow-x:auto;">
+        <table style="width:100%;border-collapse:collapse;font-size:0.85rem;">
+          <thead>
+            <tr style="background:#1a2b45;">
+              <th style="padding:0.5rem;text-align:left;border-bottom:2px solid #2c3e50;color:#ffffff;font-weight:600;">No. Pièce</th>
+              <th style="padding:0.5rem;text-align:left;border-bottom:2px solid #2c3e50;color:#ffffff;font-weight:600;">Table</th>
+              <th style="padding:0.5rem;text-align:left;border-bottom:2px solid #2c3e50;color:#ffffff;font-weight:600;">Position</th>
+              <th style="padding:0.5rem;text-align:left;border-bottom:2px solid #2c3e50;color:#ffffff;font-weight:600;">Statut</th>
+              <th style="padding:0.5rem;text-align:left;border-bottom:2px solid #2c3e50;color:#ffffff;font-weight:600;">Start Date</th>
+              <th style="padding:0.5rem;text-align:left;border-bottom:2px solid #2c3e50;color:#ffffff;font-weight:600;">End Date</th>
+            </tr>
+          </thead>
+          <tbody id="history-table-body">
+            <tr><td colspan="6" style="padding:1rem;text-align:center;color:#888;">Chargement...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tab 6: Config View -->
+  <div id="tab-config" class="tab-view">
+    <div class="card">
+      <h3>⚙️ Configuration</h3>
+
+      <label style="display:block;margin-top:1rem;font-weight:600;">Nom de l'opérateur</label>
+      <input id="config-operator-name" type="text" placeholder="Votre nom" style="width:100%;">
+      <button class="btn-primary" onclick="saveOperatorName()" style="margin-top:0.5rem;width:100%;">Sauvegarder le nom</button>
+
+      <label style="display:block;margin-top:2rem;font-weight:600;">Statistiques</label>
+      <div style="background:#f5f5f5;padding:1rem;border-radius:8px;margin-top:0.5rem;">
+        <p style="margin:0.5rem 0;">Total pièces: <strong id="config-stat-total">-</strong></p>
+        <p style="margin:0.5rem 0;">En production: <strong id="config-stat-production">-</strong></p>
+        <p style="margin:0.5rem 0;">À entretenir: <strong id="config-stat-entretien">-</strong></p>
+      </div>
+
+      <label style="display:block;margin-top:2rem;font-weight:600;">Actions</label>
+      <button class="btn-secondary" onclick="window.location.reload()" style="width:100%;margin-top:0.5rem;">🔄 Rafraîchir l'application</button>
+      <button class="btn-secondary" onclick="clearCache()" style="width:100%;margin-top:0.5rem;">🗑️ Vider le cache</button>
+      <button class="btn-primary" onclick="fixDataInconsistencies()" style="width:100%;margin-top:0.5rem;background:#e65100;">🔧 Réparer les données incohérentes</button>
+
+      <div style="margin-top:2rem;padding:1rem;background:#e3f2fd;border-radius:8px;">
+        <p style="margin:0;font-size:0.85rem;color:#1565c0;">
+          <strong>LAT Scanner Inventaire</strong><br>
+          Version: 2.0<br>
+          Dernière mise à jour: 2026-09-01
+        </p>
+      </div>
+    </div>
+  </div>
+</main>
+
+<!-- Bottom Navigation -->
+<nav class="bottom-nav" role="navigation" aria-label="Navigation principale">
+  <button class="nav-item active" onclick="switchTab('scan')" data-tab="scan" aria-label="Scanner" aria-current="page">
+    <span class="nav-icon" aria-hidden="true">📷</span>
+    <span class="nav-label">Scan</span>
+  </button>
+  <button class="nav-item" onclick="switchTab('history')" data-tab="history" aria-label="Historique">
+    <span class="nav-icon" aria-hidden="true">📋</span>
+    <span class="nav-label">History</span>
+  </button>
+  <button class="nav-item" onclick="switchTab('pieces')" data-tab="pieces" aria-label="Liste des pièces">
+    <span class="nav-icon" aria-hidden="true">📦</span>
+    <span class="nav-label">Pièces</span>
+  </button>
+  <button class="nav-item" onclick="switchTab('dashboard')" data-tab="dashboard" aria-label="Tableau de bord">
+    <span class="nav-icon" aria-hidden="true">📊</span>
+    <span class="nav-label">Dashboard</span>
+  </button>
+  <button class="nav-item" onclick="switchTab('huot')" data-tab="huot" aria-label="Entrepôt Huot">
+    <span class="nav-icon" aria-hidden="true">🏭</span>
+    <span class="nav-label">Huot</span>
+  </button>
+  <button class="nav-item" onclick="switchTab('config')" data-tab="config" aria-label="Configuration">
+    <span class="nav-icon" aria-hidden="true">⚙️</span>
+    <span class="nav-label">Config</span>
+  </button>
+</nav>
+
+<!-- Toast Notification Container -->
+<div id="toast" class="toast" role="alert" aria-live="polite"></div>
+
+<!-- Modals -->
+<div class="modal-overlay" id="modal-error" style="display:none">
+  <div class="modal">
+    <h3>Installation impossible</h3>
+    <p id="modal-error-text"></p>
+    <button class="btn-secondary" onclick="closeErrorModal()">Annuler</button>
+    <button class="btn-danger" onclick="openMaintenanceModal()">Forcer la mise en production</button>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-maintenance" style="display:none">
+  <div class="modal">
+    <h3>Type d'entretien requis</h3>
+    <p>Cette pièce sera installée quand même. Précisez le type d'entretien à effectuer.</p>
+    <select id="modal-maintenance-type" class="mobile-select"></select>
+    <textarea id="modal-maintenance-reason" rows="3" placeholder="Raison / Précision"></textarea>
+    <button class="btn-secondary" onclick="closeMaintenanceModal()">Annuler</button>
+    <button class="btn-danger" onclick="confirmerInstallationForcee()">Confirmer</button>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
+<script src="shared/api.js"></script>
+<script src="shared/mobile.js"></script>
+</body>
+</html>
