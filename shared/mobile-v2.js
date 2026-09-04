@@ -333,7 +333,8 @@ async function installerMouleByNumber(number) {
 
     // Log history
     await enregistrerHistorique({
-      piece: { id: moule.id },
+      piece: { id: moule.id, no_piece: moule.no_moule },
+      typePiece: 'moule',
       ancienStatut: moule.statut,
       nouveauStatut: 'Mise en production',
       typeAction: 'installation_moule',
@@ -474,7 +475,8 @@ async function installerSeatByNumber(number) {
     await installerSeat(seat.id, selectedPosition.id);
 
     await enregistrerHistorique({
-      piece: { id: seat.id },
+      piece: { id: seat.id, no_piece: seat.no_seat },
+      typePiece: 'seat',
       ancienStatut: seat.statut,
       nouveauStatut: 'Mise en production',
       typeAction: 'installation_seat',

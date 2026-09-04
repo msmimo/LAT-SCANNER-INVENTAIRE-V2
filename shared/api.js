@@ -89,9 +89,15 @@ async function sbDelete(table, id) {
 }
 
 // Consigne une ligne d'historique et cloture la ligne precedente de la meme piece (fin_statut).
-async function enregistrerHistorique({ piece, ancienStatut, nouveauStatut, typeAction, position, notes }) {
+async function enregistrerHistorique({ piece, typePiece, ancienStatut, nouveauStatut, typeAction, position, notes }) {
   const operateur = nomOperateur();
   const maintenant_ = maintenant();
+
+  // Déduire le type de pièce (moule/seat) si non fourni explicitement.
+  const typePieceFinal = typePiece
+    || (piece && piece.no_moule ? 'moule' : (piece && piece.no_seat ? 'seat' : null));
+  // Déduire le numéro de pièce depuis l'objet quelle que soit sa forme.
+  const noPiece = (piece && (piece.no_piece || piece.no_moule || piece.no_seat)) || null;
 
   const dernieres = await sbSelect(
     'historique',
@@ -106,7 +112,8 @@ async function enregistrerHistorique({ piece, ancienStatut, nouveauStatut, typeA
 
   return sbInsert('historique', {
     piece_id: piece.id,
-    no_piece: piece.no_piece,
+    no_piece: noPiece,
+    type_piece: typePieceFinal,
     ancien_statut: ancienStatut,
     nouveau_statut: nouveauStatut,
     type_action: typeAction,
