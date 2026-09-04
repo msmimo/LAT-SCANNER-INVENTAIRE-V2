@@ -9,9 +9,9 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>LAT Scanner Inventaire V2</title>
 <link rel="apple-touch-icon" href="shared/icon-192.png">
-<link rel="stylesheet" href="shared/mobile.css?v=6">
-<link rel="stylesheet" href="shared/mobile-v2-additions.css?v=6">
-<link rel="stylesheet" href="shared/dark-theme.css?v=6">
+<link rel="stylesheet" href="shared/mobile.css?v=7">
+<link rel="stylesheet" href="shared/mobile-v2-additions.css?v=7">
+<link rel="stylesheet" href="shared/dark-theme.css?v=7">
 </head>
 <body>
 <!-- Header -->
@@ -68,7 +68,7 @@
       </div>
 
       <!-- Scan Moule -->
-      <div class="scan-section">
+      <div class="scan-section" id="scan-section-moule">
         <h4>🔧 Moule</h4>
         <div class="apex-cam-area" id="cam-moule" style="display:none;">
           <video id="video-moule" playsinline autoplay muted></video>
@@ -94,7 +94,7 @@
       </div>
 
       <!-- Scan Seat -->
-      <div class="scan-section" style="margin-top:1.5rem;">
+      <div class="scan-section" id="scan-section-seat" style="margin-top:1.5rem;">
         <h4>🪑 Siège</h4>
         <div class="apex-cam-area" id="cam-seat" style="display:none;">
           <video id="video-seat" playsinline autoplay muted></video>
@@ -382,7 +382,7 @@
 <div id="toast" class="toast" role="alert" aria-live="polite"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
-<script src="shared/api.js?v=6"></script>
-<script src="shared/mobile-v2.js?v=6"></script>
+<script src="shared/api.js?v=7"></script>
+<script src="shared/mobile-v2.js?v=7"></script>
 </body>
 </html>

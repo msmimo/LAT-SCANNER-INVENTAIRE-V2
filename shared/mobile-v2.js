@@ -11,6 +11,7 @@ let allMoulds = [];
 let allSeats = [];
 let selectedTable = null;
 let selectedPosition = null;
+let selectedType = null; // 'moule' ou 'seat' — quel emplacement de la position est actif
 let cameraStreamMoule = null;
 let cameraStreamSeat = null;
 let scanAnimationMoule = null;
@@ -159,7 +160,7 @@ function renderPositionGrid() {
     const moule = allMoulds.find(m => m.position_id === pos.id);
     const numero = moule ? moule.no_moule : '';
     return `
-      <button class="map-cell moule ${moule ? 'filled' : ''}" data-pos="${pos.id}" onclick="selectPosition('${pos.id}')">
+      <button class="map-cell moule ${moule ? 'filled' : ''}" data-pos="${pos.id}" data-type="moule" onclick="selectPosition('${pos.id}','moule')">
         <span class="map-cell-pos">M${pos.position_number}</span>
         <span class="map-cell-no">${numero}</span>
       </button>`;
@@ -169,30 +170,41 @@ function renderPositionGrid() {
     const seat = allSeats.find(s => s.position_id === pos.id);
     const numero = seat ? seat.no_seat : '';
     return `
-      <button class="map-cell seat ${seat ? 'filled' : ''}" data-pos="${pos.id}" onclick="selectPosition('${pos.id}')">
+      <button class="map-cell seat ${seat ? 'filled' : ''}" data-pos="${pos.id}" data-type="seat" onclick="selectPosition('${pos.id}','seat')">
         <span class="map-cell-pos">S${pos.position_number}</span>
         <span class="map-cell-no">${numero}</span>
       </button>`;
   }).join('');
 
-  // Réappliquer la surbrillance si une position est déjà active
-  if (selectedPosition) {
-    document.querySelectorAll(`.map-cell[data-pos="${selectedPosition.id}"]`)
-      .forEach(c => c.classList.add('selected'));
+  // Réappliquer la surbrillance sur la cellule active (position + type)
+  if (selectedPosition && selectedType) {
+    const cell = document.querySelector(`.map-cell[data-pos="${selectedPosition.id}"][data-type="${selectedType}"]`);
+    if (cell) cell.classList.add('selected');
   }
 }
 
-async function selectPosition(positionId) {
+// Sélectionne UN emplacement précis (le moule OU le siège d'une position).
+// Seul le scanner correspondant est affiché.
+async function selectPosition(positionId, type) {
   selectedPosition = allPositions.find(p => p.id === positionId);
+  selectedType = type;
   if (!selectedPosition) return;
 
-  // Mettre en surbrillance les deux cellules (moule + siège) de cette position
+  // Mettre en surbrillance uniquement la cellule cliquée
   document.querySelectorAll('.map-cell').forEach(c => c.classList.remove('selected'));
-  document.querySelectorAll(`.map-cell[data-pos="${positionId}"]`)
-    .forEach(c => c.classList.add('selected'));
+  const cell = document.querySelector(`.map-cell[data-pos="${positionId}"][data-type="${type}"]`);
+  if (cell) cell.classList.add('selected');
 
+  const typeLabel = type === 'moule' ? 'Moule' : 'Siège';
   document.getElementById('selected-position-info').textContent =
-    `Table ${selectedTable.nom} — Position ${selectedPosition.position_number}`;
+    `Table ${selectedTable.nom} — Position ${selectedPosition.position_number} — ${typeLabel}`;
+
+  // N'afficher que le scanner correspondant au type sélectionné
+  document.getElementById('scan-section-moule').style.display = type === 'moule' ? 'block' : 'none';
+  document.getElementById('scan-section-seat').style.display = type === 'seat' ? 'block' : 'none';
+
+  // Arrêter tout scan en cours de l'autre type
+  if (type === 'moule') stopScanSeat(); else stopScanMoule();
 
   // Show scan card and load position status
   document.getElementById('scan-card').style.display = 'block';
@@ -231,6 +243,8 @@ async function loadPositionStatus() {
 function retourSelectionPosition() {
   document.getElementById('scan-card').style.display = 'none';
   selectedPosition = null;
+  selectedType = null;
+  document.querySelectorAll('.map-cell').forEach(c => c.classList.remove('selected'));
   stopScanMoule();
   stopScanSeat();
 }
