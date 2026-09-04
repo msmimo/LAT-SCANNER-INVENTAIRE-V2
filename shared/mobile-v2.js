@@ -591,24 +591,26 @@ function libelleStatut(statut) {
 // DASHBOARD
 // ============================================
 async function updateDashboardStats() {
-  const all = [...allMoulds, ...allSeats];
-  const production = all.filter(p => getStatutEffectif(p) === 'Mise en production').length;
-  const huot = all.filter(p => getStatutEffectif(p) === 'Chez Huot').length;
-  const entretien = all.filter(p => getStatutEffectif(p) === 'Inventaire - À entretenir').length;
-  const remise = all.filter(p => getStatutEffectif(p) === 'Remisé').length;
-  const rebute = all.filter(p => getStatutEffectif(p) === 'Rebuté').length;
-  const pret = all.filter(p => getStatutEffectif(p) === 'Prêt').length;
+  // Statistiques séparées : moules d'un côté, sièges de l'autre.
+  remplirStatsBloc('m', allMoulds);
+  remplirStatsBloc('s', allSeats);
+}
 
-  document.getElementById('stat-production').textContent = production;
-  document.getElementById('stat-huot').textContent = huot;
-  document.getElementById('stat-entretien').textContent = entretien;
-  document.getElementById('stat-remise').textContent = remise;
-  if (document.getElementById('stat-rebute')) {
-    document.getElementById('stat-rebute').textContent = rebute;
-  }
-  if (document.getElementById('stat-pret')) {
-    document.getElementById('stat-pret').textContent = pret;
-  }
+// Remplit un bloc de statistiques (prefix 'm' pour moules, 's' pour sièges).
+function remplirStatsBloc(prefix, pieces) {
+  const compteur = statut => pieces.filter(p => getStatutEffectif(p) === statut).length;
+  const map = {
+    production: 'Mise en production',
+    huot: 'Chez Huot',
+    entretien: 'Inventaire - À entretenir',
+    pret: 'Prêt',
+    remise: 'Remisé',
+    rebute: 'Rebuté'
+  };
+  Object.keys(map).forEach(cle => {
+    const el = document.getElementById(`stat-${prefix}-${cle}`);
+    if (el) el.textContent = compteur(map[cle]);
+  });
 }
 
 async function renderDashboardTables() {
@@ -638,11 +640,17 @@ async function renderDashboardTables() {
   container.innerHTML = html.join('');
 }
 
-function filterByStatut(statut) {
-  // Switch to moulds tab and filter
-  switchTab('moulds');
-  document.getElementById('moulds-status-filter').value = statut;
-  filterMoulds();
+function filterByStatut(statut, type) {
+  // Ouvre l'onglet correspondant au type de pièce et applique le filtre de statut.
+  if (type === 'seat') {
+    switchTab('seats');
+    document.getElementById('seats-status-filter').value = statut;
+    filterSeats();
+  } else {
+    switchTab('moulds');
+    document.getElementById('moulds-status-filter').value = statut;
+    filterMoulds();
+  }
 }
 
 // ============================================

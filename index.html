@@ -9,9 +9,9 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>LAT Scanner Inventaire V2</title>
 <link rel="apple-touch-icon" href="shared/icon-192.png">
-<link rel="stylesheet" href="shared/mobile.css?v=4">
-<link rel="stylesheet" href="shared/mobile-v2-additions.css?v=4">
-<link rel="stylesheet" href="shared/dark-theme.css?v=4">
+<link rel="stylesheet" href="shared/mobile.css?v=5">
+<link rel="stylesheet" href="shared/mobile-v2-additions.css?v=5">
+<link rel="stylesheet" href="shared/dark-theme.css?v=5">
 </head>
 <body>
 <!-- Header -->
@@ -120,31 +120,63 @@
 
   <!-- Tab 2: Dashboard View -->
   <div id="tab-dashboard" class="tab-view">
+    <!-- Bloc Moules -->
     <div class="card">
-      <h3>📊 Vue d'ensemble</h3>
+      <h3>🔧 Moules</h3>
       <div class="stats-grid">
-        <div class="stat-card production" onclick="filterByStatut('Mise en production')">
-          <div class="stat-value" id="stat-production">0</div>
+        <div class="stat-card production" onclick="filterByStatut('Mise en production','moule')">
+          <div class="stat-value" id="stat-m-production">0</div>
           <div class="stat-label">Installé</div>
         </div>
-        <div class="stat-card huot" onclick="filterByStatut('Chez Huot')">
-          <div class="stat-value" id="stat-huot">0</div>
+        <div class="stat-card huot" onclick="filterByStatut('Chez Huot','moule')">
+          <div class="stat-value" id="stat-m-huot">0</div>
           <div class="stat-label">Chez Huot</div>
         </div>
-        <div class="stat-card entretien" onclick="filterByStatut('Inventaire - À entretenir')">
-          <div class="stat-value" id="stat-entretien">0</div>
+        <div class="stat-card entretien" onclick="filterByStatut('Inventaire - À entretenir','moule')">
+          <div class="stat-value" id="stat-m-entretien">0</div>
           <div class="stat-label">À entretenir</div>
         </div>
-        <div class="stat-card pret" onclick="filterByStatut('Prêt')">
-          <div class="stat-value" id="stat-pret">0</div>
+        <div class="stat-card pret" onclick="filterByStatut('Prêt','moule')">
+          <div class="stat-value" id="stat-m-pret">0</div>
           <div class="stat-label">Prêt</div>
         </div>
-        <div class="stat-card remise" onclick="filterByStatut('Remisé')">
-          <div class="stat-value" id="stat-remise">0</div>
+        <div class="stat-card remise" onclick="filterByStatut('Remisé','moule')">
+          <div class="stat-value" id="stat-m-remise">0</div>
           <div class="stat-label">Remisé</div>
         </div>
-        <div class="stat-card rebute" onclick="filterByStatut('Rebuté')">
-          <div class="stat-value" id="stat-rebute">0</div>
+        <div class="stat-card rebute" onclick="filterByStatut('Rebuté','moule')">
+          <div class="stat-value" id="stat-m-rebute">0</div>
+          <div class="stat-label">Rebuté</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bloc Sièges -->
+    <div class="card">
+      <h3>🪑 Sièges</h3>
+      <div class="stats-grid">
+        <div class="stat-card production" onclick="filterByStatut('Mise en production','seat')">
+          <div class="stat-value" id="stat-s-production">0</div>
+          <div class="stat-label">Installé</div>
+        </div>
+        <div class="stat-card huot" onclick="filterByStatut('Chez Huot','seat')">
+          <div class="stat-value" id="stat-s-huot">0</div>
+          <div class="stat-label">Chez Huot</div>
+        </div>
+        <div class="stat-card entretien" onclick="filterByStatut('Inventaire - À entretenir','seat')">
+          <div class="stat-value" id="stat-s-entretien">0</div>
+          <div class="stat-label">À entretenir</div>
+        </div>
+        <div class="stat-card pret" onclick="filterByStatut('Prêt','seat')">
+          <div class="stat-value" id="stat-s-pret">0</div>
+          <div class="stat-label">Prêt</div>
+        </div>
+        <div class="stat-card remise" onclick="filterByStatut('Remisé','seat')">
+          <div class="stat-value" id="stat-s-remise">0</div>
+          <div class="stat-label">Remisé</div>
+        </div>
+        <div class="stat-card rebute" onclick="filterByStatut('Rebuté','seat')">
+          <div class="stat-value" id="stat-s-rebute">0</div>
           <div class="stat-label">Rebuté</div>
         </div>
       </div>
@@ -341,7 +373,7 @@
 <div id="toast" class="toast" role="alert" aria-live="polite"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
-<script src="shared/api.js?v=4"></script>
-<script src="shared/mobile-v2.js?v=4"></script>
+<script src="shared/api.js?v=5"></script>
+<script src="shared/mobile-v2.js?v=5"></script>
 </body>
 </html>
