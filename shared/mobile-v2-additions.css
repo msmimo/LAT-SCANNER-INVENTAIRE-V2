@@ -66,6 +66,91 @@
   border-color: #5a4fb0;
 }
 
+/* Table Map (plan de la table : NORD moules / SUD sièges) */
+.table-map {
+  margin: 0.5rem 0 1rem;
+}
+
+.map-label {
+  text-align: center;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  color: #888;
+  margin: 0.5rem 0;
+}
+
+.map-row {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 8px;
+  margin: 6px 0;
+}
+
+.map-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  min-height: 64px;
+  padding: 6px 2px;
+  border: 2px solid #e0e0e0;
+  border-radius: 10px;
+  background: #fff;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  touch-action: manipulation;
+}
+
+.map-cell:active {
+  transform: scale(0.95);
+}
+
+.map-cell-pos {
+  font-size: 13px;
+  font-weight: 700;
+  color: #1a2b45;
+}
+
+.map-cell-no {
+  font-size: 13px;
+  font-weight: 600;
+  color: #2e9e56;
+  min-height: 16px;
+  word-break: break-all;
+  line-height: 1.1;
+}
+
+/* Cellule occupée : bordure verte */
+.map-cell.filled {
+  border-color: #2e9e56;
+  background: #f0f9f4;
+}
+
+/* Cellule sélectionnée (position active) */
+.map-cell.selected {
+  border-color: #4a90e2;
+  box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.4);
+}
+
+/* Panneau Position active */
+.position-active-panel {
+  margin-top: 0.75rem;
+  padding: 1rem;
+  border: 1px solid #e0e0e0;
+  border-radius: 10px;
+  background: #fafafa;
+}
+
+.pa-title {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  color: #888;
+  margin-bottom: 0.25rem;
+}
+
 /* Position Status Display */
 .position-status {
   background: #f5f6f8;

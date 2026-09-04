@@ -145,22 +145,51 @@ function selectTable(tableId) {
   if (navigator.vibrate) navigator.vibrate(10);
 }
 
+// Affiche le plan de la table : rangée de moules (NORD) et rangée de sièges
+// (SUD). Chaque cellule montre le numéro de la pièce installée (ou vide).
 function renderPositionGrid() {
-  const grid = document.getElementById('position-grid');
-  const tablePositions = allPositions.filter(p => p.table_id === selectedTable.id);
+  const moulesRow = document.getElementById('map-moules-row');
+  const seatsRow = document.getElementById('map-seats-row');
 
-  grid.innerHTML = tablePositions.map(pos => `
-    <button class="position-btn" onclick="selectPosition('${pos.id}')">${pos.position_number}</button>
-  `).join('');
+  const tablePositions = allPositions
+    .filter(p => p.table_id === selectedTable.id)
+    .sort((a, b) => a.position_number - b.position_number);
+
+  moulesRow.innerHTML = tablePositions.map(pos => {
+    const moule = allMoulds.find(m => m.position_id === pos.id);
+    const numero = moule ? moule.no_moule : '';
+    return `
+      <button class="map-cell moule ${moule ? 'filled' : ''}" data-pos="${pos.id}" onclick="selectPosition('${pos.id}')">
+        <span class="map-cell-pos">M${pos.position_number}</span>
+        <span class="map-cell-no">${numero}</span>
+      </button>`;
+  }).join('');
+
+  seatsRow.innerHTML = tablePositions.map(pos => {
+    const seat = allSeats.find(s => s.position_id === pos.id);
+    const numero = seat ? seat.no_seat : '';
+    return `
+      <button class="map-cell seat ${seat ? 'filled' : ''}" data-pos="${pos.id}" onclick="selectPosition('${pos.id}')">
+        <span class="map-cell-pos">S${pos.position_number}</span>
+        <span class="map-cell-no">${numero}</span>
+      </button>`;
+  }).join('');
+
+  // Réappliquer la surbrillance si une position est déjà active
+  if (selectedPosition) {
+    document.querySelectorAll(`.map-cell[data-pos="${selectedPosition.id}"]`)
+      .forEach(c => c.classList.add('selected'));
+  }
 }
 
 async function selectPosition(positionId) {
   selectedPosition = allPositions.find(p => p.id === positionId);
   if (!selectedPosition) return;
 
-  // Update UI
-  document.querySelectorAll('.position-btn').forEach(btn => btn.classList.remove('selected'));
-  event.target.classList.add('selected');
+  // Mettre en surbrillance les deux cellules (moule + siège) de cette position
+  document.querySelectorAll('.map-cell').forEach(c => c.classList.remove('selected'));
+  document.querySelectorAll(`.map-cell[data-pos="${positionId}"]`)
+    .forEach(c => c.classList.add('selected'));
 
   document.getElementById('selected-position-info').textContent =
     `Table ${selectedTable.nom} — Position ${selectedPosition.position_number}`;
@@ -381,6 +410,7 @@ async function installerMouleByNumber(number) {
     // Reload data and status
     allMoulds = await getAllMoulds();
     await loadPositionStatus();
+    renderPositionGrid();
   } catch (e) {
     console.error(e);
     showToast(e.message || 'Erreur installation moule', 'error');
@@ -553,6 +583,7 @@ async function installerSeatByNumber(number) {
 
     allSeats = await getAllSeats();
     await loadPositionStatus();
+    renderPositionGrid();
   } catch (e) {
     console.error(e);
     showToast(e.message || 'Erreur installation siège', 'error');

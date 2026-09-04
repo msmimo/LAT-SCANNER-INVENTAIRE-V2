@@ -9,9 +9,9 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>LAT Scanner Inventaire V2</title>
 <link rel="apple-touch-icon" href="shared/icon-192.png">
-<link rel="stylesheet" href="shared/mobile.css?v=5">
-<link rel="stylesheet" href="shared/mobile-v2-additions.css?v=5">
-<link rel="stylesheet" href="shared/dark-theme.css?v=5">
+<link rel="stylesheet" href="shared/mobile.css?v=6">
+<link rel="stylesheet" href="shared/mobile-v2-additions.css?v=6">
+<link rel="stylesheet" href="shared/dark-theme.css?v=6">
 </head>
 <body>
 <!-- Header -->
@@ -33,13 +33,22 @@
       <p class="hint-text" id="selected-table-info">Aucune table sélectionnée</p>
     </div>
 
-    <!-- Position Selection -->
+    <!-- Position Selection (plan de la table) -->
     <div class="card" id="position-card" style="display:none;">
-      <h3>📍 Sélection de position (1-5)</h3>
-      <div class="position-grid" id="position-grid">
-        <!-- 5 positions will be generated here -->
+      <div class="table-map">
+        <div class="map-label">— NORD —</div>
+        <div class="map-row" id="map-moules-row">
+          <!-- M1..M5 générés ici -->
+        </div>
+        <div class="map-row" id="map-seats-row">
+          <!-- S1..S5 générés ici -->
+        </div>
+        <div class="map-label">— SUD —</div>
       </div>
-      <p class="hint-text" id="selected-position-info">Aucune position sélectionnée</p>
+      <div class="position-active-panel">
+        <div class="pa-title">POSITION ACTIVE</div>
+        <p class="hint-text" id="selected-position-info">Appuyez sur une position ci-dessus</p>
+      </div>
     </div>
 
     <!-- Scan Section -->
@@ -373,7 +382,7 @@
 <div id="toast" class="toast" role="alert" aria-live="polite"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
-<script src="shared/api.js?v=5"></script>
-<script src="shared/mobile-v2.js?v=5"></script>
+<script src="shared/api.js?v=6"></script>
+<script src="shared/mobile-v2.js?v=6"></script>
 </body>
 </html>
