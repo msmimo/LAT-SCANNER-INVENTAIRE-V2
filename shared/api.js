@@ -191,7 +191,10 @@ async function getSeatsByStatut(statut) {
   return sbSelect('seats', `*&statut=eq.${encodeURIComponent(statut)}&order=table_nom,no_seat`);
 }
 
-// Install a moule at a position
+// Install a moule at a position.
+// Si la position est déjà occupée par un AUTRE moule, celui-ci est déplacé
+// automatiquement vers l'inventaire (Remisé) — l'opérateur peut toujours
+// remplacer. Retourne la liste des pièces déplacées pour journalisation.
 async function installerMoule(mouleId, positionId) {
   const position = await sbSelect('table_positions', `*&id=eq.${positionId}`);
   if (!position || !position.length) throw new Error('Position introuvable');
@@ -200,10 +203,16 @@ async function installerMoule(mouleId, positionId) {
   const table = await sbSelect('tables', `*&id=eq.${pos.table_id}`);
   if (!table || !table.length) throw new Error('Table introuvable');
 
-  // Check if position already has a moule
+  // Déplacer tout moule déjà présent à cette position (sauf lui-même)
   const existing = await sbSelect('moulds', `*&position_id=eq.${positionId}`);
+  const displaced = [];
   if (existing && existing.length > 0) {
-    throw new Error('Cette position a déjà un moule installé');
+    for (const ex of existing) {
+      if (ex.id !== mouleId) {
+        await sbUpdate('moulds', ex.id, { statut: 'Remisé', position_id: null });
+        displaced.push(ex);
+      }
+    }
   }
 
   // Update moule
@@ -212,10 +221,10 @@ async function installerMoule(mouleId, positionId) {
     position_id: positionId
   });
 
-  return { success: true, table: table[0], position: pos };
+  return { success: true, table: table[0], position: pos, displaced };
 }
 
-// Install a seat at a position
+// Install a seat at a position (même logique de remplacement que installerMoule).
 async function installerSeat(seatId, positionId) {
   const position = await sbSelect('table_positions', `*&id=eq.${positionId}`);
   if (!position || !position.length) throw new Error('Position introuvable');
@@ -224,10 +233,16 @@ async function installerSeat(seatId, positionId) {
   const table = await sbSelect('tables', `*&id=eq.${pos.table_id}`);
   if (!table || !table.length) throw new Error('Table introuvable');
 
-  // Check if position already has a seat
+  // Déplacer tout siège déjà présent à cette position (sauf lui-même)
   const existing = await sbSelect('seats', `*&position_id=eq.${positionId}`);
+  const displaced = [];
   if (existing && existing.length > 0) {
-    throw new Error('Cette position a déjà un siège installé');
+    for (const ex of existing) {
+      if (ex.id !== seatId) {
+        await sbUpdate('seats', ex.id, { statut: 'Remisé', position_id: null });
+        displaced.push(ex);
+      }
+    }
   }
 
   // Update seat
@@ -236,7 +251,7 @@ async function installerSeat(seatId, positionId) {
     position_id: positionId
   });
 
-  return { success: true, table: table[0], position: pos };
+  return { success: true, table: table[0], position: pos, displaced };
 }
 
 // Remove moule from position (change status to Remisé)

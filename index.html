@@ -9,9 +9,9 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>LAT Scanner Inventaire V2</title>
 <link rel="apple-touch-icon" href="shared/icon-192.png">
-<link rel="stylesheet" href="shared/mobile.css?v=3">
-<link rel="stylesheet" href="shared/mobile-v2-additions.css?v=3">
-<link rel="stylesheet" href="shared/dark-theme.css?v=3">
+<link rel="stylesheet" href="shared/mobile.css?v=4">
+<link rel="stylesheet" href="shared/mobile-v2-additions.css?v=4">
+<link rel="stylesheet" href="shared/dark-theme.css?v=4">
 </head>
 <body>
 <!-- Header -->
@@ -125,7 +125,7 @@
       <div class="stats-grid">
         <div class="stat-card production" onclick="filterByStatut('Mise en production')">
           <div class="stat-value" id="stat-production">0</div>
-          <div class="stat-label">En production</div>
+          <div class="stat-label">Installé</div>
         </div>
         <div class="stat-card huot" onclick="filterByStatut('Chez Huot')">
           <div class="stat-value" id="stat-huot">0</div>
@@ -164,7 +164,7 @@
       <input id="moulds-filter" type="text" placeholder="Filtrer par numéro..." oninput="filterMoulds()">
       <select id="moulds-status-filter" class="mobile-select" onchange="filterMoulds()">
         <option value="">Tous les statuts</option>
-        <option value="Mise en production">Mise en production</option>
+        <option value="Mise en production">Installé</option>
         <option value="Chez Huot">Chez Huot</option>
         <option value="Inventaire - À entretenir">À entretenir</option>
         <option value="Prêt">Prêt</option>
@@ -187,7 +187,7 @@
       <input id="seats-filter" type="text" placeholder="Filtrer par numéro..." oninput="filterSeats()">
       <select id="seats-status-filter" class="mobile-select" onchange="filterSeats()">
         <option value="">Tous les statuts</option>
-        <option value="Mise en production">Mise en production</option>
+        <option value="Mise en production">Installé</option>
         <option value="Chez Huot">Chez Huot</option>
         <option value="Inventaire - À entretenir">À entretenir</option>
         <option value="Prêt">Prêt</option>
@@ -249,7 +249,7 @@
         <p style="margin:0.5rem 0;">Total moules: <strong id="config-stat-moulds">-</strong></p>
         <p style="margin:0.5rem 0;">Total sièges: <strong id="config-stat-seats">-</strong></p>
         <p style="margin:0.5rem 0;">Total tables: <strong id="config-stat-tables">18</strong></p>
-        <p style="margin:0.5rem 0;">En production: <strong id="config-stat-production">-</strong></p>
+        <p style="margin:0.5rem 0;">Installé: <strong id="config-stat-production">-</strong></p>
       </div>
 
       <h4 style="margin-top:2rem;">🔧 Gestion</h4>
@@ -341,7 +341,7 @@
 <div id="toast" class="toast" role="alert" aria-live="polite"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
-<script src="shared/api.js?v=3"></script>
-<script src="shared/mobile-v2.js?v=3"></script>
+<script src="shared/api.js?v=4"></script>
+<script src="shared/mobile-v2.js?v=4"></script>
 </body>
 </html>

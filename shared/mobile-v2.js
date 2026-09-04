@@ -322,16 +322,50 @@ async function installerMouleByNumber(number) {
       return;
     }
 
-    // Check if moule is already installed somewhere
-    if (moule.statut === 'Mise en production' && moule.position_id) {
-      const confirm = window.confirm(`Ce moule est déjà installé. Le déplacer ici?`);
-      if (!confirm) return;
+    // Vérifications selon le statut actuel de la pièce à installer
+    const dest = `Table ${selectedTable.nom} Position ${selectedPosition.position_number}`;
+    let repairNote = null;
+
+    if (moule.statut === 'Rebuté') {
+      // Pièce mise au rebut : installation interdite
+      showToast(`Impossible : le moule ${number} est rebuté (scrapped)`, 'error');
+      return;
+    } else if (moule.statut === 'Mise en production' && moule.position_id) {
+      // Déjà installé ailleurs → confirmer le déplacement
+      const posActuelle = getPositionNumber(moule.position_id);
+      if (!window.confirm(`Le moule ${number} est installé à la position ${posActuelle}.\nConfirmer le déplacement vers ${dest} ?`)) return;
+    } else if (moule.statut === 'Chez Huot') {
+      // Revient de Huot → confirmer l'installation
+      if (!window.confirm(`Le moule ${number} est actuellement Chez Huot.\nConfirmer l'installation à ${dest} ?`)) return;
+    } else if (moule.statut === 'Inventaire - À entretenir') {
+      // En entretien → demander quelle réparation a été effectuée
+      repairNote = window.prompt(`Le moule ${number} était en entretien.\nQuelle réparation a été effectuée ?`);
+      if (repairNote === null) return; // annulé
+    }
+    // Remisé / Prêt : installation directe, sans confirmation
+
+    // Install moule (déplace automatiquement toute pièce déjà à cette position)
+    const res = await installerMoule(moule.id, selectedPosition.id);
+
+    // Journaliser les pièces déplacées (remises en inventaire)
+    if (res && res.displaced && res.displaced.length) {
+      for (const ex of res.displaced) {
+        await enregistrerHistorique({
+          piece: { id: ex.id, no_piece: ex.no_moule },
+          typePiece: 'moule',
+          ancienStatut: ex.statut,
+          nouveauStatut: 'Remisé',
+          typeAction: 'remplacement_moule',
+          position: null,
+          notes: `Moule ${ex.no_moule} retiré de ${dest} (remplacé par ${number})`
+        });
+      }
     }
 
-    // Install moule
-    await installerMoule(moule.id, selectedPosition.id);
-
     // Log history
+    const notes = repairNote
+      ? `Moule ${number} installé à ${dest} — réparation : ${repairNote}`
+      : `Moule ${number} installé à ${dest}`;
     await enregistrerHistorique({
       piece: { id: moule.id, no_piece: moule.no_moule },
       typePiece: 'moule',
@@ -339,7 +373,7 @@ async function installerMouleByNumber(number) {
       nouveauStatut: 'Mise en production',
       typeAction: 'installation_moule',
       position: selectedPosition,
-      notes: `Moule ${number} installé à Table ${selectedTable.nom} Position ${selectedPosition.position_number}`
+      notes
     });
 
     showToast(`✓ Moule ${number} installé`, 'success');
@@ -467,13 +501,44 @@ async function installerSeatByNumber(number) {
       return;
     }
 
-    if (seat.statut === 'Mise en production' && seat.position_id) {
-      const confirm = window.confirm(`Ce siège est déjà installé. Le déplacer ici?`);
-      if (!confirm) return;
+    // Vérifications selon le statut actuel de la pièce à installer
+    const dest = `Table ${selectedTable.nom} Position ${selectedPosition.position_number}`;
+    let repairNote = null;
+
+    if (seat.statut === 'Rebuté') {
+      showToast(`Impossible : le siège ${number} est rebuté (scrapped)`, 'error');
+      return;
+    } else if (seat.statut === 'Mise en production' && seat.position_id) {
+      const posActuelle = getPositionNumber(seat.position_id);
+      if (!window.confirm(`Le siège ${number} est installé à la position ${posActuelle}.\nConfirmer le déplacement vers ${dest} ?`)) return;
+    } else if (seat.statut === 'Chez Huot') {
+      if (!window.confirm(`Le siège ${number} est actuellement Chez Huot.\nConfirmer l'installation à ${dest} ?`)) return;
+    } else if (seat.statut === 'Inventaire - À entretenir') {
+      repairNote = window.prompt(`Le siège ${number} était en entretien.\nQuelle réparation a été effectuée ?`);
+      if (repairNote === null) return; // annulé
+    }
+    // Remisé / Prêt : installation directe, sans confirmation
+
+    const res = await installerSeat(seat.id, selectedPosition.id);
+
+    // Journaliser les pièces déplacées (remises en inventaire)
+    if (res && res.displaced && res.displaced.length) {
+      for (const ex of res.displaced) {
+        await enregistrerHistorique({
+          piece: { id: ex.id, no_piece: ex.no_seat },
+          typePiece: 'seat',
+          ancienStatut: ex.statut,
+          nouveauStatut: 'Remisé',
+          typeAction: 'remplacement_seat',
+          position: null,
+          notes: `Siège ${ex.no_seat} retiré de ${dest} (remplacé par ${number})`
+        });
+      }
     }
 
-    await installerSeat(seat.id, selectedPosition.id);
-
+    const notes = repairNote
+      ? `Siège ${number} installé à ${dest} — réparation : ${repairNote}`
+      : `Siège ${number} installé à ${dest}`;
     await enregistrerHistorique({
       piece: { id: seat.id, no_piece: seat.no_seat },
       typePiece: 'seat',
@@ -481,7 +546,7 @@ async function installerSeatByNumber(number) {
       nouveauStatut: 'Mise en production',
       typeAction: 'installation_seat',
       position: selectedPosition,
-      notes: `Siège ${number} installé à Table ${selectedTable.nom} Position ${selectedPosition.position_number}`
+      notes
     });
 
     showToast(`✓ Siège ${number} installé`, 'success');
@@ -514,6 +579,12 @@ function getStatutEffectif(piece) {
     return tableEnProduction(piece.table_nom) ? 'Prêt' : 'Remisé';
   }
   return piece.statut;
+}
+
+// Libellé affiché : le statut interne "Mise en production" est présenté
+// comme "Installé" à l'utilisateur (la valeur stockée reste inchangée).
+function libelleStatut(statut) {
+  return statut === 'Mise en production' ? 'Installé' : statut;
 }
 
 // ============================================
@@ -609,7 +680,7 @@ function filterMoulds() {
       <div class="piece-item ${statusClass}">
         <div class="piece-info">
           <strong>${moule.no_moule}</strong> — ${moule.table_nom}
-          <br><small>${statutEffectif}</small>
+          <br><small>${libelleStatut(statutEffectif)}</small>
           ${positionInfo}
         </div>
         <button class="btn-action" onclick="showMouleActions('${moule.id}')">⋯</button>
@@ -677,7 +748,7 @@ function filterSeats() {
       <div class="piece-item ${statusClass}">
         <div class="piece-info">
           <strong>${seat.no_seat}</strong> — ${seat.table_nom}
-          <br><small>${statutEffectif}</small>
+          <br><small>${libelleStatut(statutEffectif)}</small>
           ${positionInfo}
         </div>
         <button class="btn-action" onclick="showSeatActions('${seat.id}')">⋯</button>
