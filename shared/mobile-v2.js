@@ -493,15 +493,38 @@ async function installerSeatByNumber(number) {
 }
 
 // ============================================
+// STATUT EFFECTIF (Prêt calculé automatiquement)
+// ============================================
+// Une table est "en production" si au moins une pièce (moule ou siège)
+// y est en statut "Mise en production".
+function tableEnProduction(tableNom) {
+  return [...allMoulds, ...allSeats].some(
+    p => p.table_nom === tableNom && p.statut === 'Mise en production'
+  );
+}
+
+// Le statut "Prêt" est déterminé automatiquement : une pièce en réserve
+// (stockée "Remisé" ou "Prêt") devient "Prêt" si sa table a déjà au moins
+// une pièce en production (donc utilisable immédiatement), sinon "Remisé".
+// Les autres statuts (production, Huot, entretien, rebuté) restent inchangés.
+function getStatutEffectif(piece) {
+  if (piece.statut === 'Remisé' || piece.statut === 'Prêt') {
+    return tableEnProduction(piece.table_nom) ? 'Prêt' : 'Remisé';
+  }
+  return piece.statut;
+}
+
+// ============================================
 // DASHBOARD
 // ============================================
 async function updateDashboardStats() {
-  const production = [...allMoulds, ...allSeats].filter(p => p.statut === 'Mise en production').length;
-  const huot = [...allMoulds, ...allSeats].filter(p => p.statut === 'Chez Huot').length;
-  const entretien = [...allMoulds, ...allSeats].filter(p => p.statut === 'Inventaire - À entretenir').length;
-  const remise = [...allMoulds, ...allSeats].filter(p => p.statut === 'Remisé').length;
-  const rebute = [...allMoulds, ...allSeats].filter(p => p.statut === 'Rebuté').length;
-  const pret = [...allMoulds, ...allSeats].filter(p => p.statut === 'Prêt').length;
+  const all = [...allMoulds, ...allSeats];
+  const production = all.filter(p => getStatutEffectif(p) === 'Mise en production').length;
+  const huot = all.filter(p => getStatutEffectif(p) === 'Chez Huot').length;
+  const entretien = all.filter(p => getStatutEffectif(p) === 'Inventaire - À entretenir').length;
+  const remise = all.filter(p => getStatutEffectif(p) === 'Remisé').length;
+  const rebute = all.filter(p => getStatutEffectif(p) === 'Rebuté').length;
+  const pret = all.filter(p => getStatutEffectif(p) === 'Prêt').length;
 
   document.getElementById('stat-production').textContent = production;
   document.getElementById('stat-huot').textContent = huot;
@@ -563,7 +586,7 @@ function filterMoulds() {
 
   const filtered = allMoulds.filter(m => {
     const matchText = m.no_moule.toLowerCase().includes(filterText);
-    const matchStatut = !filterStatut || m.statut === filterStatut;
+    const matchStatut = !filterStatut || getStatutEffectif(m) === filterStatut;
     return matchText && matchStatut;
   });
 
@@ -575,7 +598,8 @@ function filterMoulds() {
   }
 
   container.innerHTML = filtered.map(moule => {
-    const statusClass = moule.statut.replace(/\s+/g, '-').toLowerCase();
+    const statutEffectif = getStatutEffectif(moule);
+    const statusClass = statutEffectif.replace(/\s+/g, '-').toLowerCase();
     const positionInfo = moule.position_id ?
       `<br><small>Table ${moule.table_nom} — Position ${getPositionNumber(moule.position_id)}</small>` : '';
 
@@ -583,7 +607,7 @@ function filterMoulds() {
       <div class="piece-item ${statusClass}">
         <div class="piece-info">
           <strong>${moule.no_moule}</strong> — ${moule.table_nom}
-          <br><small>${moule.statut}</small>
+          <br><small>${statutEffectif}</small>
           ${positionInfo}
         </div>
         <button class="btn-action" onclick="showMouleActions('${moule.id}')">⋯</button>
@@ -601,14 +625,13 @@ function showMouleActions(mouleId) {
   const moule = allMoulds.find(m => m.id === mouleId);
   if (!moule) return;
 
-  const action = prompt(`Moule ${moule.no_moule}\nChoisir action:\n1. Chez Huot\n2. À entretenir\n3. Remisé\n4. Rebuté\n5. Prêt\n6. Retirer de la position`);
+  const action = prompt(`Moule ${moule.no_moule}\nChoisir action:\n1. Chez Huot\n2. À entretenir\n3. Remisé\n4. Rebuté\n5. Retirer de la position\n\n(Prêt est déterminé automatiquement)`);
 
   if (action === '1') changerStatutMoule(mouleId, 'Chez Huot').then(() => refresh());
   else if (action === '2') changerStatutMoule(mouleId, 'Inventaire - À entretenir').then(() => refresh());
   else if (action === '3') changerStatutMoule(mouleId, 'Remisé').then(() => refresh());
   else if (action === '4') changerStatutMoule(mouleId, 'Rebuté').then(() => refresh());
-  else if (action === '5') changerStatutMoule(mouleId, 'Prêt').then(() => refresh());
-  else if (action === '6') retirerMoule(mouleId).then(() => refresh());
+  else if (action === '5') retirerMoule(mouleId).then(() => refresh());
 
   async function refresh() {
     allMoulds = await getAllMoulds();
@@ -631,7 +654,7 @@ function filterSeats() {
 
   const filtered = allSeats.filter(s => {
     const matchText = s.no_seat.toLowerCase().includes(filterText);
-    const matchStatut = !filterStatut || s.statut === filterStatut;
+    const matchStatut = !filterStatut || getStatutEffectif(s) === filterStatut;
     return matchText && matchStatut;
   });
 
@@ -643,7 +666,8 @@ function filterSeats() {
   }
 
   container.innerHTML = filtered.map(seat => {
-    const statusClass = seat.statut.replace(/\s+/g, '-').toLowerCase();
+    const statutEffectif = getStatutEffectif(seat);
+    const statusClass = statutEffectif.replace(/\s+/g, '-').toLowerCase();
     const positionInfo = seat.position_id ?
       `<br><small>Table ${seat.table_nom} — Position ${getPositionNumber(seat.position_id)}</small>` : '';
 
@@ -651,7 +675,7 @@ function filterSeats() {
       <div class="piece-item ${statusClass}">
         <div class="piece-info">
           <strong>${seat.no_seat}</strong> — ${seat.table_nom}
-          <br><small>${seat.statut}</small>
+          <br><small>${statutEffectif}</small>
           ${positionInfo}
         </div>
         <button class="btn-action" onclick="showSeatActions('${seat.id}')">⋯</button>
@@ -664,14 +688,13 @@ function showSeatActions(seatId) {
   const seat = allSeats.find(s => s.id === seatId);
   if (!seat) return;
 
-  const action = prompt(`Siège ${seat.no_seat}\nChoisir action:\n1. Chez Huot\n2. À entretenir\n3. Remisé\n4. Rebuté\n5. Prêt\n6. Retirer de la position`);
+  const action = prompt(`Siège ${seat.no_seat}\nChoisir action:\n1. Chez Huot\n2. À entretenir\n3. Remisé\n4. Rebuté\n5. Retirer de la position\n\n(Prêt est déterminé automatiquement)`);
 
   if (action === '1') changerStatutSeat(seatId, 'Chez Huot').then(() => refresh());
   else if (action === '2') changerStatutSeat(seatId, 'Inventaire - À entretenir').then(() => refresh());
   else if (action === '3') changerStatutSeat(seatId, 'Remisé').then(() => refresh());
   else if (action === '4') changerStatutSeat(seatId, 'Rebuté').then(() => refresh());
-  else if (action === '5') changerStatutSeat(seatId, 'Prêt').then(() => refresh());
-  else if (action === '6') retirerSeat(seatId).then(() => refresh());
+  else if (action === '5') retirerSeat(seatId).then(() => refresh());
 
   async function refresh() {
     allSeats = await getAllSeats();
