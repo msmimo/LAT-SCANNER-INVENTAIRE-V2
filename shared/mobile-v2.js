@@ -500,11 +500,19 @@ async function updateDashboardStats() {
   const huot = [...allMoulds, ...allSeats].filter(p => p.statut === 'Chez Huot').length;
   const entretien = [...allMoulds, ...allSeats].filter(p => p.statut === 'Inventaire - À entretenir').length;
   const remise = [...allMoulds, ...allSeats].filter(p => p.statut === 'Remisé').length;
+  const rebute = [...allMoulds, ...allSeats].filter(p => p.statut === 'Rebuté').length;
+  const pret = [...allMoulds, ...allSeats].filter(p => p.statut === 'Prêt').length;
 
   document.getElementById('stat-production').textContent = production;
   document.getElementById('stat-huot').textContent = huot;
   document.getElementById('stat-entretien').textContent = entretien;
   document.getElementById('stat-remise').textContent = remise;
+  if (document.getElementById('stat-rebute')) {
+    document.getElementById('stat-rebute').textContent = rebute;
+  }
+  if (document.getElementById('stat-pret')) {
+    document.getElementById('stat-pret').textContent = pret;
+  }
 }
 
 async function renderDashboardTables() {
@@ -593,13 +601,14 @@ function showMouleActions(mouleId) {
   const moule = allMoulds.find(m => m.id === mouleId);
   if (!moule) return;
 
-  const actions = ['Chez Huot', 'Inventaire - À entretenir', 'Remisé'];
-  const action = prompt(`Moule ${moule.no_moule}\nChoisir action:\n1. Chez Huot\n2. À entretenir\n3. Remisé\n4. Retirer de la position`);
+  const action = prompt(`Moule ${moule.no_moule}\nChoisir action:\n1. Chez Huot\n2. À entretenir\n3. Remisé\n4. Rebuté\n5. Prêt\n6. Retirer de la position`);
 
   if (action === '1') changerStatutMoule(mouleId, 'Chez Huot').then(() => refresh());
   else if (action === '2') changerStatutMoule(mouleId, 'Inventaire - À entretenir').then(() => refresh());
   else if (action === '3') changerStatutMoule(mouleId, 'Remisé').then(() => refresh());
-  else if (action === '4') retirerMoule(mouleId).then(() => refresh());
+  else if (action === '4') changerStatutMoule(mouleId, 'Rebuté').then(() => refresh());
+  else if (action === '5') changerStatutMoule(mouleId, 'Prêt').then(() => refresh());
+  else if (action === '6') retirerMoule(mouleId).then(() => refresh());
 
   async function refresh() {
     allMoulds = await getAllMoulds();
@@ -655,12 +664,14 @@ function showSeatActions(seatId) {
   const seat = allSeats.find(s => s.id === seatId);
   if (!seat) return;
 
-  const action = prompt(`Siège ${seat.no_seat}\nChoisir action:\n1. Chez Huot\n2. À entretenir\n3. Remisé\n4. Retirer de la position`);
+  const action = prompt(`Siège ${seat.no_seat}\nChoisir action:\n1. Chez Huot\n2. À entretenir\n3. Remisé\n4. Rebuté\n5. Prêt\n6. Retirer de la position`);
 
   if (action === '1') changerStatutSeat(seatId, 'Chez Huot').then(() => refresh());
   else if (action === '2') changerStatutSeat(seatId, 'Inventaire - À entretenir').then(() => refresh());
   else if (action === '3') changerStatutSeat(seatId, 'Remisé').then(() => refresh());
-  else if (action === '4') retirerSeat(seatId).then(() => refresh());
+  else if (action === '4') changerStatutSeat(seatId, 'Rebuté').then(() => refresh());
+  else if (action === '5') changerStatutSeat(seatId, 'Prêt').then(() => refresh());
+  else if (action === '6') retirerSeat(seatId).then(() => refresh());
 
   async function refresh() {
     allSeats = await getAllSeats();
