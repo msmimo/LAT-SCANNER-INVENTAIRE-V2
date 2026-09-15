@@ -905,14 +905,47 @@ function openInstallModal(type, pieceId) {
   const numero = piece ? (piece.no_moule || piece.no_seat) : '';
   if (label) label.textContent = type === 'moule' ? `Installer le moule ${numero}` : `Installer le siège ${numero}`;
 
+  overlay.dataset.type = type;
+  overlay.dataset.pieceId = pieceId;
+
   // Liste déroulante des tables ; la table d'origine de la pièce est présélectionnée.
   select.innerHTML = allTables
     .map(t => `<option value="${t.id}"${piece && t.nom === piece.table_nom ? ' selected' : ''}>${formatNomTable(t.nom)}</option>`)
     .join('');
 
-  overlay.dataset.type = type;
-  overlay.dataset.pieceId = pieceId;
   overlay.style.display = 'flex';
+
+  // Deuxième liste : positions 1 à 5 de la table choisie.
+  refreshInstallPositions();
+}
+
+// Remplit la liste des positions (1 à 5) de la table sélectionnée, en indiquant
+// à chaque position la pièce déjà en place (le cas échéant). Rappelée quand on
+// change de table.
+function refreshInstallPositions() {
+  const overlay = document.getElementById('install-overlay');
+  const posSelect = document.getElementById('install-position-select');
+  const tableSelect = document.getElementById('install-table-select');
+  if (!overlay || !posSelect || !tableSelect) return;
+
+  const type = overlay.dataset.type;
+  const tableId = tableSelect.value;
+  const liste = type === 'moule' ? allMoulds : allSeats;
+
+  const positions = allPositions
+    .filter(p => p.table_id === tableId)
+    .sort((a, b) => a.position_number - b.position_number);
+
+  posSelect.innerHTML = positions.map(p => {
+    const occupant = liste.find(x => x.position_id === p.id);
+    const nom = occupant ? (occupant.no_moule || occupant.no_seat) : '';
+    const suffixe = occupant ? ` — occupée (${nom})` : ' — libre';
+    return `<option value="${p.id}">Position ${p.position_number}${suffixe}</option>`;
+  }).join('');
+
+  // Présélectionne la première position libre (sinon la première de la liste).
+  const libre = positions.find(p => !liste.some(x => x.position_id === p.id));
+  if (libre) posSelect.value = libre.id;
 }
 
 function closeInstallModal() {
@@ -925,19 +958,20 @@ async function confirmInstall() {
   const type = overlay.dataset.type;
   const pieceId = overlay.dataset.pieceId;
   const tableId = document.getElementById('install-table-select').value;
+  const posId = document.getElementById('install-position-select').value;
   const table = allTables.find(t => t.id === tableId);
   if (!table) { showToast('Choisissez une table', 'error'); return; }
 
-  // Première position libre de cette table pour ce type de pièce.
+  const pos = allPositions.find(p => p.id === posId);
+  if (!pos) { showToast('Choisissez une position', 'error'); return; }
+
+  // Une pièce (autre que celle qu'on installe) occupe-t-elle déjà cette position ?
   const liste = type === 'moule' ? allMoulds : allSeats;
-  const occupees = new Set(liste.filter(x => x.position_id).map(x => x.position_id));
-  const posLibre = allPositions
-    .filter(p => p.table_id === tableId)
-    .sort((a, b) => a.position_number - b.position_number)
-    .find(p => !occupees.has(p.id));
-  if (!posLibre) {
-    showToast(`Table ${formatNomTable(table.nom)} pleine (toutes les positions occupées)`, 'error');
-    return;
+  const occupant = liste.find(x => x.position_id === posId && x.id !== pieceId);
+  if (occupant) {
+    const nomOcc = occupant.no_moule || occupant.no_seat;
+    const ok = confirm(`La position ${pos.position_number} de la table ${formatNomTable(table.nom)} est déjà occupée par ${nomOcc}.\n\nVoulez-vous vraiment le remplacer ? (${nomOcc} passera au statut « Remisé »)`);
+    if (!ok) return;
   }
 
   try {
@@ -945,15 +979,15 @@ async function confirmInstall() {
       const moule = allMoulds.find(m => m.id === pieceId);
       const ancien = moule ? moule.statut : null;
       await sbUpdate('moulds', pieceId, { table_nom: table.nom });
-      await installerMoule(pieceId, posLibre.id);
+      await installerMoule(pieceId, pos.id);
       await enregistrerHistorique({
         piece: { id: pieceId, no_piece: moule ? moule.no_moule : '', table_nom: table.nom },
         typePiece: 'moule',
         ancienStatut: ancien,
         nouveauStatut: 'Mise en production',
         typeAction: 'installation_moule',
-        position: posLibre,
-        notes: `Moule installé sur ${table.nom} position ${posLibre.position_number}`
+        position: pos,
+        notes: `Moule installé sur ${table.nom} position ${pos.position_number}`
       });
       allMoulds = await getAllMoulds();
       renderMouldsList();
@@ -961,21 +995,21 @@ async function confirmInstall() {
       const seat = allSeats.find(s => s.id === pieceId);
       const ancien = seat ? seat.statut : null;
       await sbUpdate('seats', pieceId, { table_nom: table.nom });
-      await installerSeat(pieceId, posLibre.id);
+      await installerSeat(pieceId, pos.id);
       await enregistrerHistorique({
         piece: { id: pieceId, no_piece: seat ? seat.no_seat : '', table_nom: table.nom },
         typePiece: 'seat',
         ancienStatut: ancien,
         nouveauStatut: 'Mise en production',
         typeAction: 'installation_seat',
-        position: posLibre,
-        notes: `Siège installé sur ${table.nom} position ${posLibre.position_number}`
+        position: pos,
+        notes: `Siège installé sur ${table.nom} position ${pos.position_number}`
       });
       allSeats = await getAllSeats();
       renderSeatsList();
     }
     closeInstallModal();
-    showToast(`✓ Installé sur ${formatNomTable(table.nom)} — position ${posLibre.position_number}`, 'success');
+    showToast(`✓ Installé sur ${formatNomTable(table.nom)} — position ${pos.position_number}`, 'success');
   } catch (e) {
     console.error(e);
     showToast('Erreur lors de l\'installation', 'error');
