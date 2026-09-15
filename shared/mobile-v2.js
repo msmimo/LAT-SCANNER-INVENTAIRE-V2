@@ -758,8 +758,8 @@ function filterMoulds() {
           <div class="piece-line">
             <span class="piece-name">${moule.no_moule}</span>
             <span class="piece-pos">${meta}</span>
+            <span class="piece-status">${libelleStatut(statutEffectif)}</span>
           </div>
-          <div class="piece-status">${libelleStatut(statutEffectif)}</div>
         </div>
         <button class="btn-action" onclick="showMouleActions('${moule.id}')">⋯</button>
       </div>
@@ -829,8 +829,8 @@ function filterSeats() {
           <div class="piece-line">
             <span class="piece-name">${seat.no_seat}</span>
             <span class="piece-pos">${meta}</span>
+            <span class="piece-status">${libelleStatut(statutEffectif)}</span>
           </div>
-          <div class="piece-status">${libelleStatut(statutEffectif)}</div>
         </div>
         <button class="btn-action" onclick="showSeatActions('${seat.id}')">⋯</button>
       </div>
