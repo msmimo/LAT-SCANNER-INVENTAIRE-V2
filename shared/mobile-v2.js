@@ -787,22 +787,25 @@ function showMouleActions(mouleId) {
   const moule = allMoulds.find(m => m.id === mouleId);
   if (!moule) return;
 
-  // On propose tous les statuts SAUF celui déjà en cours (« Prêt » reste automatique).
+  // On propose toutes les actions SAUF le statut déjà en cours (« Prêt » reste automatique).
   const actuel = getStatutEffectif(moule);
-  const statuts = ['Chez Huot', 'Inventaire - À entretenir', 'Remisé', 'Rebuté']
-    .filter(s => s !== actuel);
-  const lignes = statuts.map((s, i) => `${i + 1}. ${libelleStatut(s)}`);
-  if (moule.position_id) lignes.push(`${statuts.length + 1}. Retirer de la position`);
+  const actions = [];
+  if (actuel !== 'Mise en production') {
+    // « Installé » : on demandera ensuite sur quelle table installer (fenêtre déroulante).
+    actions.push({ label: 'Installé', run: () => openInstallModal('moule', mouleId) });
+  }
+  ['Chez Huot', 'Inventaire - À entretenir', 'Remisé', 'Rebuté']
+    .filter(s => s !== actuel)
+    .forEach(s => actions.push({ label: libelleStatut(s), run: () => changerStatutMoule(mouleId, s).then(refresh) }));
+  if (moule.position_id) {
+    actions.push({ label: 'Retirer de la position', run: () => retirerMoule(mouleId).then(refresh) });
+  }
 
+  const lignes = actions.map((a, i) => `${i + 1}. ${a.label}`);
   const choix = prompt(`Moule ${moule.no_moule}\n\nChanger le statut :\n${lignes.join('\n')}`);
   if (choix === null) return;
   const idx = parseInt(choix, 10) - 1;
-
-  if (idx >= 0 && idx < statuts.length) {
-    changerStatutMoule(mouleId, statuts[idx]).then(() => refresh());
-  } else if (moule.position_id && idx === statuts.length) {
-    retirerMoule(mouleId).then(() => refresh());
-  }
+  if (idx >= 0 && idx < actions.length) actions[idx].run();
 
   async function refresh() {
     allMoulds = await getAllMoulds();
@@ -860,27 +863,122 @@ function showSeatActions(seatId) {
   const seat = allSeats.find(s => s.id === seatId);
   if (!seat) return;
 
-  // On propose tous les statuts SAUF celui déjà en cours (« Prêt » reste automatique).
+  // On propose toutes les actions SAUF le statut déjà en cours (« Prêt » reste automatique).
   const actuel = getStatutEffectif(seat);
-  const statuts = ['Chez Huot', 'Inventaire - À entretenir', 'Remisé', 'Rebuté']
-    .filter(s => s !== actuel);
-  const lignes = statuts.map((s, i) => `${i + 1}. ${libelleStatut(s)}`);
-  if (seat.position_id) lignes.push(`${statuts.length + 1}. Retirer de la position`);
+  const actions = [];
+  if (actuel !== 'Mise en production') {
+    // « Installé » : on demandera ensuite sur quelle table installer (fenêtre déroulante).
+    actions.push({ label: 'Installé', run: () => openInstallModal('seat', seatId) });
+  }
+  ['Chez Huot', 'Inventaire - À entretenir', 'Remisé', 'Rebuté']
+    .filter(s => s !== actuel)
+    .forEach(s => actions.push({ label: libelleStatut(s), run: () => changerStatutSeat(seatId, s).then(refresh) }));
+  if (seat.position_id) {
+    actions.push({ label: 'Retirer de la position', run: () => retirerSeat(seatId).then(refresh) });
+  }
 
+  const lignes = actions.map((a, i) => `${i + 1}. ${a.label}`);
   const choix = prompt(`Siège ${seat.no_seat}\n\nChanger le statut :\n${lignes.join('\n')}`);
   if (choix === null) return;
   const idx = parseInt(choix, 10) - 1;
-
-  if (idx >= 0 && idx < statuts.length) {
-    changerStatutSeat(seatId, statuts[idx]).then(() => refresh());
-  } else if (seat.position_id && idx === statuts.length) {
-    retirerSeat(seatId).then(() => refresh());
-  }
+  if (idx >= 0 && idx < actions.length) actions[idx].run();
 
   async function refresh() {
     allSeats = await getAllSeats();
     renderSeatsList();
     showToast('✓ Statut mis à jour', 'success');
+  }
+}
+
+// ============================================
+// INSTALLATION DEPUIS LA LISTE (choix de la table via liste déroulante)
+// ============================================
+function openInstallModal(type, pieceId) {
+  const overlay = document.getElementById('install-overlay');
+  const select = document.getElementById('install-table-select');
+  const label = document.getElementById('install-label');
+  if (!overlay || !select) return;
+
+  const piece = type === 'moule'
+    ? allMoulds.find(m => m.id === pieceId)
+    : allSeats.find(s => s.id === pieceId);
+  const numero = piece ? (piece.no_moule || piece.no_seat) : '';
+  if (label) label.textContent = type === 'moule' ? `Installer le moule ${numero}` : `Installer le siège ${numero}`;
+
+  // Liste déroulante des tables ; la table d'origine de la pièce est présélectionnée.
+  select.innerHTML = allTables
+    .map(t => `<option value="${t.id}"${piece && t.nom === piece.table_nom ? ' selected' : ''}>${formatNomTable(t.nom)}</option>`)
+    .join('');
+
+  overlay.dataset.type = type;
+  overlay.dataset.pieceId = pieceId;
+  overlay.style.display = 'flex';
+}
+
+function closeInstallModal() {
+  const overlay = document.getElementById('install-overlay');
+  if (overlay) overlay.style.display = 'none';
+}
+
+async function confirmInstall() {
+  const overlay = document.getElementById('install-overlay');
+  const type = overlay.dataset.type;
+  const pieceId = overlay.dataset.pieceId;
+  const tableId = document.getElementById('install-table-select').value;
+  const table = allTables.find(t => t.id === tableId);
+  if (!table) { showToast('Choisissez une table', 'error'); return; }
+
+  // Première position libre de cette table pour ce type de pièce.
+  const liste = type === 'moule' ? allMoulds : allSeats;
+  const occupees = new Set(liste.filter(x => x.position_id).map(x => x.position_id));
+  const posLibre = allPositions
+    .filter(p => p.table_id === tableId)
+    .sort((a, b) => a.position_number - b.position_number)
+    .find(p => !occupees.has(p.id));
+  if (!posLibre) {
+    showToast(`Table ${formatNomTable(table.nom)} pleine (toutes les positions occupées)`, 'error');
+    return;
+  }
+
+  try {
+    if (type === 'moule') {
+      const moule = allMoulds.find(m => m.id === pieceId);
+      const ancien = moule ? moule.statut : null;
+      await sbUpdate('moulds', pieceId, { table_nom: table.nom });
+      await installerMoule(pieceId, posLibre.id);
+      await enregistrerHistorique({
+        piece: { id: pieceId, no_piece: moule ? moule.no_moule : '', table_nom: table.nom },
+        typePiece: 'moule',
+        ancienStatut: ancien,
+        nouveauStatut: 'Mise en production',
+        typeAction: 'installation_moule',
+        position: posLibre,
+        notes: `Moule installé sur ${table.nom} position ${posLibre.position_number}`
+      });
+      allMoulds = await getAllMoulds();
+      renderMouldsList();
+    } else {
+      const seat = allSeats.find(s => s.id === pieceId);
+      const ancien = seat ? seat.statut : null;
+      await sbUpdate('seats', pieceId, { table_nom: table.nom });
+      await installerSeat(pieceId, posLibre.id);
+      await enregistrerHistorique({
+        piece: { id: pieceId, no_piece: seat ? seat.no_seat : '', table_nom: table.nom },
+        typePiece: 'seat',
+        ancienStatut: ancien,
+        nouveauStatut: 'Mise en production',
+        typeAction: 'installation_seat',
+        position: posLibre,
+        notes: `Siège installé sur ${table.nom} position ${posLibre.position_number}`
+      });
+      allSeats = await getAllSeats();
+      renderSeatsList();
+    }
+    closeInstallModal();
+    showToast(`✓ Installé sur ${formatNomTable(table.nom)} — position ${posLibre.position_number}`, 'success');
+  } catch (e) {
+    console.error(e);
+    showToast('Erreur lors de l\'installation', 'error');
   }
 }
 

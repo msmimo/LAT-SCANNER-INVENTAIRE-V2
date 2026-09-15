@@ -9,9 +9,9 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>LAT Scanner Inventaire V2</title>
 <link rel="apple-touch-icon" href="shared/icon-192.png">
-<link rel="stylesheet" href="shared/mobile.css?v=18">
-<link rel="stylesheet" href="shared/mobile-v2-additions.css?v=18">
-<link rel="stylesheet" href="shared/dark-theme.css?v=18">
+<link rel="stylesheet" href="shared/mobile.css?v=19">
+<link rel="stylesheet" href="shared/mobile-v2-additions.css?v=19">
+<link rel="stylesheet" href="shared/dark-theme.css?v=19">
 </head>
 <body>
 <!-- Header -->
@@ -394,11 +394,21 @@
   </div>
 </div>
 
+<!-- Overlay d'installation (choix de la table) -->
+<div id="install-overlay" class="list-scan-overlay" style="display:none;">
+  <div class="list-scan-box">
+    <div class="list-scan-title" id="install-label">Installer</div>
+    <select id="install-table-select" class="install-select"></select>
+    <button class="btn-primary" onclick="confirmInstall()">✓ Installer</button>
+    <button class="btn-secondary" onclick="closeInstallModal()">Annuler</button>
+  </div>
+</div>
+
 <!-- Toast Notification -->
 <div id="toast" class="toast" role="alert" aria-live="polite"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
-<script src="shared/api.js?v=18"></script>
-<script src="shared/mobile-v2.js?v=18"></script>
+<script src="shared/api.js?v=19"></script>
+<script src="shared/mobile-v2.js?v=19"></script>
 </body>
 </html>
