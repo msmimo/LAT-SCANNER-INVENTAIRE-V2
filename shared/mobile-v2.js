@@ -667,6 +667,15 @@ function libelleStatut(statut) {
   return statut;
 }
 
+// Libellé utilisé dans les menus de choix (changement de statut, ajout de pièce) :
+// « Remisé » y est présenté comme « Prêt ou Remisé », car le système décide ensuite
+// automatiquement lequel s'applique (Prêt si la table est en production, sinon Remisé).
+// Le tableau de bord et les listes continuent d'afficher le statut concret.
+function libelleChoixStatut(statut) {
+  if (statut === 'Remisé') return 'Prêt ou Remisé';
+  return libelleStatut(statut);
+}
+
 // ============================================
 // DASHBOARD
 // ============================================
@@ -787,16 +796,18 @@ function showMouleActions(mouleId) {
   const moule = allMoulds.find(m => m.id === mouleId);
   if (!moule) return;
 
-  // On propose toutes les actions SAUF le statut déjà en cours (« Prêt » reste automatique).
+  // On propose toutes les actions SAUF le statut déjà en cours.
+  // « Prêt ou Remisé » regroupe l'état de réserve (le système choisit ensuite Prêt ou Remisé).
   const actuel = getStatutEffectif(moule);
+  const enReserve = actuel === 'Prêt' || actuel === 'Remisé';
   const actions = [];
   if (actuel !== 'Mise en production') {
     // « Installé » : on demandera ensuite sur quelle table installer (fenêtre déroulante).
     actions.push({ label: 'Installé', run: () => openInstallModal('moule', mouleId) });
   }
   ['Chez Huot', 'Inventaire - À entretenir', 'Remisé', 'Rebuté']
-    .filter(s => s !== actuel)
-    .forEach(s => actions.push({ label: libelleStatut(s), run: () => changerStatutMoule(mouleId, s).then(refresh) }));
+    .filter(s => s !== actuel && !(s === 'Remisé' && enReserve))
+    .forEach(s => actions.push({ label: libelleChoixStatut(s), run: () => changerStatutMoule(mouleId, s).then(refresh) }));
   if (moule.position_id) {
     actions.push({ label: 'Retirer de la position', run: () => retirerMoule(mouleId).then(refresh) });
   }
@@ -863,16 +874,18 @@ function showSeatActions(seatId) {
   const seat = allSeats.find(s => s.id === seatId);
   if (!seat) return;
 
-  // On propose toutes les actions SAUF le statut déjà en cours (« Prêt » reste automatique).
+  // On propose toutes les actions SAUF le statut déjà en cours.
+  // « Prêt ou Remisé » regroupe l'état de réserve (le système choisit ensuite Prêt ou Remisé).
   const actuel = getStatutEffectif(seat);
+  const enReserve = actuel === 'Prêt' || actuel === 'Remisé';
   const actions = [];
   if (actuel !== 'Mise en production') {
     // « Installé » : on demandera ensuite sur quelle table installer (fenêtre déroulante).
     actions.push({ label: 'Installé', run: () => openInstallModal('seat', seatId) });
   }
   ['Chez Huot', 'Inventaire - À entretenir', 'Remisé', 'Rebuté']
-    .filter(s => s !== actuel)
-    .forEach(s => actions.push({ label: libelleStatut(s), run: () => changerStatutSeat(seatId, s).then(refresh) }));
+    .filter(s => s !== actuel && !(s === 'Remisé' && enReserve))
+    .forEach(s => actions.push({ label: libelleChoixStatut(s), run: () => changerStatutSeat(seatId, s).then(refresh) }));
   if (seat.position_id) {
     actions.push({ label: 'Retirer de la position', run: () => retirerSeat(seatId).then(refresh) });
   }
@@ -1193,12 +1206,13 @@ function populateAdminTableSelects() {
 }
 
 // Statuts qu'un utilisateur peut choisir manuellement (« Prêt » reste automatique).
-const STATUTS_MANUELS = ['Mise en production', 'Chez Huot', 'Inventaire - À entretenir', 'Remisé', 'Rebuté', 'Prêt'];
+// « Remisé » représente l'état de réserve « Prêt ou Remisé » (le système tranche ensuite).
+const STATUTS_MANUELS = ['Mise en production', 'Chez Huot', 'Inventaire - À entretenir', 'Remisé', 'Rebuté'];
 
 // Demande un statut via une invite numérotée.
 // Renvoie la valeur interne, null si annulé, ou undefined si le choix est invalide.
 function demanderStatut(titre) {
-  const lignes = STATUTS_MANUELS.map((s, i) => `${i + 1}. ${libelleStatut(s)}`);
+  const lignes = STATUTS_MANUELS.map((s, i) => `${i + 1}. ${libelleChoixStatut(s)}`);
   const choix = prompt(`${titre}\n\nStatut de la pièce :\n${lignes.join('\n')}`);
   if (choix === null) return null;
   const idx = parseInt(choix, 10) - 1;
