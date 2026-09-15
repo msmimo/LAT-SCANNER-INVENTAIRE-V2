@@ -9,9 +9,9 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>LAT Scanner Inventaire V2</title>
 <link rel="apple-touch-icon" href="shared/icon-192.png">
-<link rel="stylesheet" href="shared/mobile.css?v=17">
-<link rel="stylesheet" href="shared/mobile-v2-additions.css?v=17">
-<link rel="stylesheet" href="shared/dark-theme.css?v=17">
+<link rel="stylesheet" href="shared/mobile.css?v=18">
+<link rel="stylesheet" href="shared/mobile-v2-additions.css?v=18">
+<link rel="stylesheet" href="shared/dark-theme.css?v=18">
 </head>
 <body>
 <!-- Header -->
@@ -204,6 +204,7 @@
   <div id="tab-moulds" class="tab-view">
     <div class="filter-bar">
       <input id="moulds-filter" type="text" placeholder="Filtrer par numéro..." oninput="filterMoulds()">
+      <button class="btn-scan-list" onclick="startListScan('moule')">📷 Scanner un moule</button>
       <select id="moulds-status-filter" class="mobile-select" onchange="filterMoulds()">
         <option value="">Tous les statuts</option>
         <option value="Mise en production">Installé</option>
@@ -227,6 +228,7 @@
   <div id="tab-seats" class="tab-view">
     <div class="filter-bar">
       <input id="seats-filter" type="text" placeholder="Filtrer par numéro..." oninput="filterSeats()">
+      <button class="btn-scan-list" onclick="startListScan('seat')">📷 Scanner un siège</button>
       <select id="seats-status-filter" class="mobile-select" onchange="filterSeats()">
         <option value="">Tous les statuts</option>
         <option value="Mise en production">Installé</option>
@@ -387,11 +389,20 @@
   </button>
 </nav>
 
+<!-- Overlay de scan (pages Moules / Sièges) -->
+<div id="list-scan-overlay" class="list-scan-overlay" style="display:none;">
+  <div class="list-scan-box">
+    <div class="list-scan-title" id="list-scan-label">Scanner</div>
+    <video id="list-scan-video" playsinline autoplay muted></video>
+    <button class="btn-secondary" onclick="stopListScan()">Annuler</button>
+  </div>
+</div>
+
 <!-- Toast Notification -->
 <div id="toast" class="toast" role="alert" aria-live="polite"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
-<script src="shared/api.js?v=17"></script>
-<script src="shared/mobile-v2.js?v=17"></script>
+<script src="shared/api.js?v=18"></script>
+<script src="shared/mobile-v2.js?v=18"></script>
 </body>
 </html>

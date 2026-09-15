@@ -16,6 +16,9 @@ let cameraStreamMoule = null;
 let cameraStreamSeat = null;
 let scanAnimationMoule = null;
 let scanAnimationSeat = null;
+// Scanner des pages Moules / Sièges (recherche par scan au lieu de saisie)
+let listScanStream = null;
+let listScanAnimation = null;
 
 // Page Titles
 const pageTitles = {
@@ -784,13 +787,22 @@ function showMouleActions(mouleId) {
   const moule = allMoulds.find(m => m.id === mouleId);
   if (!moule) return;
 
-  const action = prompt(`Moule ${moule.no_moule}\nChoisir action:\n1. Chez Huot\n2. À entretenir\n3. Remisé\n4. Rebuté\n5. Retirer de la position\n\n(Prêt est déterminé automatiquement)`);
+  // On propose tous les statuts SAUF celui déjà en cours (« Prêt » reste automatique).
+  const actuel = getStatutEffectif(moule);
+  const statuts = ['Chez Huot', 'Inventaire - À entretenir', 'Remisé', 'Rebuté']
+    .filter(s => s !== actuel);
+  const lignes = statuts.map((s, i) => `${i + 1}. ${libelleStatut(s)}`);
+  if (moule.position_id) lignes.push(`${statuts.length + 1}. Retirer de la position`);
 
-  if (action === '1') changerStatutMoule(mouleId, 'Chez Huot').then(() => refresh());
-  else if (action === '2') changerStatutMoule(mouleId, 'Inventaire - À entretenir').then(() => refresh());
-  else if (action === '3') changerStatutMoule(mouleId, 'Remisé').then(() => refresh());
-  else if (action === '4') changerStatutMoule(mouleId, 'Rebuté').then(() => refresh());
-  else if (action === '5') retirerMoule(mouleId).then(() => refresh());
+  const choix = prompt(`Moule ${moule.no_moule}\n\nChanger le statut :\n${lignes.join('\n')}`);
+  if (choix === null) return;
+  const idx = parseInt(choix, 10) - 1;
+
+  if (idx >= 0 && idx < statuts.length) {
+    changerStatutMoule(mouleId, statuts[idx]).then(() => refresh());
+  } else if (moule.position_id && idx === statuts.length) {
+    retirerMoule(mouleId).then(() => refresh());
+  }
 
   async function refresh() {
     allMoulds = await getAllMoulds();
@@ -848,18 +860,112 @@ function showSeatActions(seatId) {
   const seat = allSeats.find(s => s.id === seatId);
   if (!seat) return;
 
-  const action = prompt(`Siège ${seat.no_seat}\nChoisir action:\n1. Chez Huot\n2. À entretenir\n3. Remisé\n4. Rebuté\n5. Retirer de la position\n\n(Prêt est déterminé automatiquement)`);
+  // On propose tous les statuts SAUF celui déjà en cours (« Prêt » reste automatique).
+  const actuel = getStatutEffectif(seat);
+  const statuts = ['Chez Huot', 'Inventaire - À entretenir', 'Remisé', 'Rebuté']
+    .filter(s => s !== actuel);
+  const lignes = statuts.map((s, i) => `${i + 1}. ${libelleStatut(s)}`);
+  if (seat.position_id) lignes.push(`${statuts.length + 1}. Retirer de la position`);
 
-  if (action === '1') changerStatutSeat(seatId, 'Chez Huot').then(() => refresh());
-  else if (action === '2') changerStatutSeat(seatId, 'Inventaire - À entretenir').then(() => refresh());
-  else if (action === '3') changerStatutSeat(seatId, 'Remisé').then(() => refresh());
-  else if (action === '4') changerStatutSeat(seatId, 'Rebuté').then(() => refresh());
-  else if (action === '5') retirerSeat(seatId).then(() => refresh());
+  const choix = prompt(`Siège ${seat.no_seat}\n\nChanger le statut :\n${lignes.join('\n')}`);
+  if (choix === null) return;
+  const idx = parseInt(choix, 10) - 1;
+
+  if (idx >= 0 && idx < statuts.length) {
+    changerStatutSeat(seatId, statuts[idx]).then(() => refresh());
+  } else if (seat.position_id && idx === statuts.length) {
+    retirerSeat(seatId).then(() => refresh());
+  }
 
   async function refresh() {
     allSeats = await getAllSeats();
     renderSeatsList();
     showToast('✓ Statut mis à jour', 'success');
+  }
+}
+
+// ============================================
+// SCAN DANS LES PAGES MOULES / SIÈGES
+// Scanner un code affiche uniquement cette pièce (comme une recherche),
+// puis on change son statut via le bouton « ⋯ », comme en recherche manuelle.
+// ============================================
+async function startListScan(type) {
+  const overlay = document.getElementById('list-scan-overlay');
+  const video = document.getElementById('list-scan-video');
+  const label = document.getElementById('list-scan-label');
+  if (!overlay || !video) return;
+
+  overlay.dataset.type = type;
+  if (label) label.textContent = type === 'moule' ? 'Scanner un moule' : 'Scanner un siège';
+  overlay.style.display = 'flex';
+
+  try {
+    listScanStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+    video.srcObject = listScanStream;
+    video.onloadedmetadata = () => {
+      listScanAnimation = requestAnimationFrame(listScanFrame);
+    };
+  } catch (e) {
+    console.error(e);
+    showToast('Impossible d\'accéder à la caméra', 'error');
+    stopListScan();
+  }
+}
+
+function listScanFrame() {
+  const video = document.getElementById('list-scan-video');
+  const canvas = document.createElement('canvas');
+  const ctx = canvas.getContext('2d');
+
+  if (video.readyState === video.HAVE_ENOUGH_DATA) {
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    const code = jsQR(imageData.data, imageData.width, imageData.height);
+    if (code) {
+      const type = document.getElementById('list-scan-overlay').dataset.type;
+      const valeur = code.data.trim();
+      stopListScan();
+      appliquerScanListe(type, valeur);
+      return;
+    }
+  }
+  listScanAnimation = requestAnimationFrame(listScanFrame);
+}
+
+function stopListScan() {
+  if (listScanStream) {
+    listScanStream.getTracks().forEach(t => t.stop());
+    listScanStream = null;
+  }
+  if (listScanAnimation) {
+    cancelAnimationFrame(listScanAnimation);
+    listScanAnimation = null;
+  }
+  const overlay = document.getElementById('list-scan-overlay');
+  if (overlay) overlay.style.display = 'none';
+}
+
+function appliquerScanListe(type, valeur) {
+  if (type === 'moule') {
+    const input = document.getElementById('moulds-filter');
+    const statut = document.getElementById('moulds-status-filter');
+    if (input) input.value = valeur;
+    if (statut) statut.value = ''; // ne pas masquer la pièce par un filtre de statut
+    filterMoulds();
+    switchTab('moulds');
+    const trouve = allMoulds.some(m => (m.no_moule || '').toLowerCase() === valeur.toLowerCase());
+    showToast(trouve ? `Moule ${valeur}` : `Aucun moule « ${valeur} »`, trouve ? 'success' : 'error');
+  } else {
+    const input = document.getElementById('seats-filter');
+    const statut = document.getElementById('seats-status-filter');
+    if (input) input.value = valeur;
+    if (statut) statut.value = '';
+    filterSeats();
+    switchTab('seats');
+    const trouve = allSeats.some(s => (s.no_seat || '').toLowerCase() === valeur.toLowerCase());
+    showToast(trouve ? `Siège ${valeur}` : `Aucun siège « ${valeur} »`, trouve ? 'success' : 'error');
   }
 }
 
