@@ -92,7 +92,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  height: 88px;
+  aspect-ratio: 1;            /* cellule carrée (cube), identique a la version web */
+  min-height: 64px;
   border: none;
   border-radius: 16px;
   background: #c9ccd4;
@@ -106,15 +107,18 @@
   transform: scale(0.95);
 }
 
-/* Bloc blanc représentant le moule (uniquement rangée NORD) */
+/* Bloc blanc représentant le moule (uniquement rangée NORD).
+   Il remplit la cellule grise (petite marge tout autour) pour former
+   un vrai cube blanc, comme sur la maquette web. */
 .map-cell.moule::before {
   content: '';
   position: absolute;
-  top: 14px;
-  width: 46px;
-  height: 42px;
+  top: 8px;
+  left: 8px;
+  right: 8px;
+  bottom: 8px;
   background: #ffffff;
-  border-radius: 6px;
+  border-radius: 10px;
   box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.06);
 }
 

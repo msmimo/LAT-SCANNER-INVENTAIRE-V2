@@ -9,9 +9,9 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>LAT Scanner Inventaire V2</title>
 <link rel="apple-touch-icon" href="shared/icon-192.png">
-<link rel="stylesheet" href="shared/mobile.css?v=12">
-<link rel="stylesheet" href="shared/mobile-v2-additions.css?v=12">
-<link rel="stylesheet" href="shared/dark-theme.css?v=12">
+<link rel="stylesheet" href="shared/mobile.css?v=13">
+<link rel="stylesheet" href="shared/mobile-v2-additions.css?v=13">
+<link rel="stylesheet" href="shared/dark-theme.css?v=13">
 </head>
 <body>
 <!-- Header -->
@@ -337,7 +337,7 @@
       <!-- Add Table -->
       <div class="admin-section" style="margin-top:1.5rem;">
         <h4>➕ Ajouter une table</h4>
-        <input id="admin-new-table-nom" type="text" placeholder="Nom / dimension (ex: 711-1346)" style="width:100%;margin:0.5rem 0;" maxlength="20">
+        <input id="admin-new-table-nom" type="text" placeholder="Nom / dimension (ex: 711-1346)" style="width:100%;margin:0.5rem 0;" maxlength="10">
         <textarea id="admin-new-table-desc" placeholder="Description (optionnel)" style="width:100%;margin:0.5rem 0;min-height:60px;"></textarea>
         <p class="hint-text" style="margin:0.25rem 0;">Le nom sert de dimension (ex. « 711-1346 » → 711 × 1346 mm). 5 positions sont créées automatiquement.</p>
         <button class="btn-primary" onclick="ajouterNouvelleTable()" style="width:100%;">Créer table</button>
@@ -387,7 +387,7 @@
 <div id="toast" class="toast" role="alert" aria-live="polite"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
-<script src="shared/api.js?v=12"></script>
-<script src="shared/mobile-v2.js?v=12"></script>
+<script src="shared/api.js?v=13"></script>
+<script src="shared/mobile-v2.js?v=13"></script>
 </body>
 </html>

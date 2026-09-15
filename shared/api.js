@@ -164,9 +164,10 @@ async function getTables() {
 }
 
 // Extrait les deux nombres d'un nom de table « 711-1346 » -> [711, 1346].
+// Un suffixe est toléré (ex: « 711-1346PR » -> [711, 1346]).
 // Renvoie null si le nom n'est pas au format attendu.
 function parseNomDimension(nom) {
-  const m = String(nom || '').trim().match(/^(\d+)\s*[-x×]\s*(\d+)$/i);
+  const m = String(nom || '').trim().match(/^(\d+)\s*[-x×]\s*(\d+)/i);
   return m ? [parseInt(m[1], 10), parseInt(m[2], 10)] : null;
 }
 

@@ -997,8 +997,9 @@ async function ajouterNouveauSeat() {
 }
 
 // Le nom d'une table est aussi sa dimension : « 711-1346 » → « 711 x 1346 mm ».
+// Un suffixe est toléré (ex: « 711-1346PR » → « 711 x 1346 mm »).
 function dimensionDepuisNom(nom) {
-  const m = String(nom || '').trim().match(/^(\d+)\s*[-x×]\s*(\d+)$/i);
+  const m = String(nom || '').trim().match(/^(\d+)\s*[-x×]\s*(\d+)/i);
   return m ? `${m[1]} x ${m[2]} mm` : '';
 }
 
