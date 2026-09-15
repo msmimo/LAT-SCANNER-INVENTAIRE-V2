@@ -970,7 +970,7 @@ async function confirmInstall() {
   const occupant = liste.find(x => x.position_id === posId && x.id !== pieceId);
   if (occupant) {
     const nomOcc = occupant.no_moule || occupant.no_seat;
-    const ok = confirm(`La position ${pos.position_number} de la table ${formatNomTable(table.nom)} est déjà occupée par ${nomOcc}.\n\nVoulez-vous vraiment le remplacer ? (${nomOcc} passera au statut « Remisé »)`);
+    const ok = confirm(`La position ${pos.position_number} de la table ${formatNomTable(table.nom)} est déjà occupée par ${nomOcc}.\n\nVoulez-vous vraiment le remplacer ? (${nomOcc} passera au statut « À entretenir »)`);
     if (!ok) return;
   }
 
@@ -1192,30 +1192,56 @@ function populateAdminTableSelects() {
   document.getElementById('admin-new-seat-table').innerHTML = '<option value="">Sélectionner table...</option>' + options;
 }
 
+// Statuts qu'un utilisateur peut choisir manuellement (« Prêt » reste automatique).
+const STATUTS_MANUELS = ['Mise en production', 'Chez Huot', 'Inventaire - À entretenir', 'Remisé', 'Rebuté'];
+
+// Demande un statut via une invite numérotée.
+// Renvoie la valeur interne, null si annulé, ou undefined si le choix est invalide.
+function demanderStatut(titre) {
+  const lignes = STATUTS_MANUELS.map((s, i) => `${i + 1}. ${libelleStatut(s)}`);
+  const choix = prompt(`${titre}\n\nStatut de la pièce :\n${lignes.join('\n')}`);
+  if (choix === null) return null;
+  const idx = parseInt(choix, 10) - 1;
+  if (idx < 0 || idx >= STATUTS_MANUELS.length) return undefined;
+  return STATUTS_MANUELS[idx];
+}
+
 async function ajouterNouveauMoule() {
   const no = document.getElementById('admin-new-moule-no').value.trim();
   const table = document.getElementById('admin-new-moule-table').value;
   const dim = document.getElementById('admin-new-moule-dim').value.trim();
+  const messageEl = document.getElementById('admin-message');
 
   if (!no || !table) {
-    document.getElementById('admin-message').textContent = '⚠️ Veuillez remplir tous les champs requis';
+    messageEl.textContent = '⚠️ Veuillez remplir tous les champs requis';
     return;
   }
 
-  try {
-    await creerMoule({
-      no_moule: no,
-      table_nom: table,
-      dimension_spec: dim,
-      condition: 'good'
-    });
+  const statut = demanderStatut(`Nouveau moule ${no}`);
+  if (statut === null) return;                                    // annulé
+  if (statut === undefined) { messageEl.textContent = '⚠️ Choix de statut invalide'; return; }
 
-    document.getElementById('admin-message').textContent = `✓ Moule ${no} créé`;
+  try {
+    if (statut === 'Mise en production') {
+      // « Installé » : on crée la pièce en réserve puis on suit la règle de la page
+      // (choix de la table et de la position, avec confirmation si occupée).
+      const cree = await creerMoule({ no_moule: no, table_nom: table, dimension_spec: dim, condition: 'good', statut: 'Remisé' });
+      allMoulds = await getAllMoulds();
+      renderMouldsList();
+      document.getElementById('admin-new-moule-no').value = '';
+      document.getElementById('admin-new-moule-dim').value = '';
+      messageEl.textContent = `✓ Moule ${no} créé — choisissez la table et la position`;
+      openInstallModal('moule', cree.id);
+      return;
+    }
+    await creerMoule({ no_moule: no, table_nom: table, dimension_spec: dim, condition: 'good', statut });
+    messageEl.textContent = `✓ Moule ${no} créé (${libelleStatut(statut)})`;
     document.getElementById('admin-new-moule-no').value = '';
     document.getElementById('admin-new-moule-dim').value = '';
     allMoulds = await getAllMoulds();
+    renderMouldsList();
   } catch (e) {
-    document.getElementById('admin-message').textContent = `❌ Erreur: ${e.message}`;
+    messageEl.textContent = `❌ Erreur: ${e.message}`;
   }
 }
 
@@ -1223,26 +1249,38 @@ async function ajouterNouveauSeat() {
   const no = document.getElementById('admin-new-seat-no').value.trim();
   const table = document.getElementById('admin-new-seat-table').value;
   const dim = document.getElementById('admin-new-seat-dim').value.trim();
+  const messageEl = document.getElementById('admin-message');
 
   if (!no || !table) {
-    document.getElementById('admin-message').textContent = '⚠️ Veuillez remplir tous les champs requis';
+    messageEl.textContent = '⚠️ Veuillez remplir tous les champs requis';
     return;
   }
 
-  try {
-    await creerSeat({
-      no_seat: no,
-      table_nom: table,
-      dimension_spec: dim,
-      condition: 'good'
-    });
+  const statut = demanderStatut(`Nouveau siège ${no}`);
+  if (statut === null) return;                                    // annulé
+  if (statut === undefined) { messageEl.textContent = '⚠️ Choix de statut invalide'; return; }
 
-    document.getElementById('admin-message').textContent = `✓ Siège ${no} créé`;
+  try {
+    if (statut === 'Mise en production') {
+      // « Installé » : on crée la pièce en réserve puis on suit la règle de la page
+      // (choix de la table et de la position, avec confirmation si occupée).
+      const cree = await creerSeat({ no_seat: no, table_nom: table, dimension_spec: dim, condition: 'good', statut: 'Remisé' });
+      allSeats = await getAllSeats();
+      renderSeatsList();
+      document.getElementById('admin-new-seat-no').value = '';
+      document.getElementById('admin-new-seat-dim').value = '';
+      messageEl.textContent = `✓ Siège ${no} créé — choisissez la table et la position`;
+      openInstallModal('seat', cree.id);
+      return;
+    }
+    await creerSeat({ no_seat: no, table_nom: table, dimension_spec: dim, condition: 'good', statut });
+    messageEl.textContent = `✓ Siège ${no} créé (${libelleStatut(statut)})`;
     document.getElementById('admin-new-seat-no').value = '';
     document.getElementById('admin-new-seat-dim').value = '';
     allSeats = await getAllSeats();
+    renderSeatsList();
   } catch (e) {
-    document.getElementById('admin-message').textContent = `❌ Erreur: ${e.message}`;
+    messageEl.textContent = `❌ Erreur: ${e.message}`;
   }
 }
 

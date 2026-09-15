@@ -218,13 +218,14 @@ async function installerMoule(mouleId, positionId) {
   const table = await sbSelect('tables', `*&id=eq.${pos.table_id}`);
   if (!table || !table.length) throw new Error('Table introuvable');
 
-  // Déplacer tout moule déjà présent à cette position (sauf lui-même)
+  // Déplacer tout moule déjà présent à cette position (sauf lui-même) :
+  // une pièce remplacée passe au statut « À entretenir » (et non « Remisé »).
   const existing = await sbSelect('moulds', `*&position_id=eq.${positionId}`);
   const displaced = [];
   if (existing && existing.length > 0) {
     for (const ex of existing) {
       if (ex.id !== mouleId) {
-        await sbUpdate('moulds', ex.id, { statut: 'Remisé', position_id: null });
+        await sbUpdate('moulds', ex.id, { statut: 'Inventaire - À entretenir', position_id: null });
         displaced.push(ex);
       }
     }
@@ -248,13 +249,14 @@ async function installerSeat(seatId, positionId) {
   const table = await sbSelect('tables', `*&id=eq.${pos.table_id}`);
   if (!table || !table.length) throw new Error('Table introuvable');
 
-  // Déplacer tout siège déjà présent à cette position (sauf lui-même)
+  // Déplacer tout siège déjà présent à cette position (sauf lui-même) :
+  // une pièce remplacée passe au statut « À entretenir » (et non « Remisé »).
   const existing = await sbSelect('seats', `*&position_id=eq.${positionId}`);
   const displaced = [];
   if (existing && existing.length > 0) {
     for (const ex of existing) {
       if (ex.id !== seatId) {
-        await sbUpdate('seats', ex.id, { statut: 'Remisé', position_id: null });
+        await sbUpdate('seats', ex.id, { statut: 'Inventaire - À entretenir', position_id: null });
         displaced.push(ex);
       }
     }
@@ -336,24 +338,24 @@ async function getPositionOccupancy(positionId) {
 }
 
 // Create new moule
-async function creerMoule({ no_moule, table_nom, dimension_spec, condition, notes }) {
+async function creerMoule({ no_moule, table_nom, dimension_spec, condition, notes, statut }) {
   return sbInsert('moulds', {
     no_moule,
     table_nom,
     dimension_spec: dimension_spec || '',
-    statut: 'Remisé',
+    statut: statut || 'Remisé',
     condition: condition || 'good',
     notes: notes || null
   });
 }
 
 // Create new seat
-async function creerSeat({ no_seat, table_nom, dimension_spec, condition, notes }) {
+async function creerSeat({ no_seat, table_nom, dimension_spec, condition, notes, statut }) {
   return sbInsert('seats', {
     no_seat,
     table_nom,
     dimension_spec: dimension_spec || '',
-    statut: 'Remisé',
+    statut: statut || 'Remisé',
     condition: condition || 'good',
     notes: notes || null
   });
