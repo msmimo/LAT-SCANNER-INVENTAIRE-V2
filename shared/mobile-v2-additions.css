@@ -6,7 +6,7 @@
 /* Table Selection Grid */
 .table-grid {
   display: grid;
-  grid-template-columns: repeat(6, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap: 8px;
   margin: 1rem 0;
 }
@@ -523,7 +523,7 @@
 /* Responsive Adjustments */
 @media (max-width: 375px) {
   .table-grid {
-    grid-template-columns: repeat(5, 1fr);
+    grid-template-columns: repeat(3, 1fr);
   }
 
   .position-grid {
