@@ -1223,7 +1223,8 @@ function demanderStatut(titre) {
 async function ajouterNouveauMoule() {
   const no = document.getElementById('admin-new-moule-no').value.trim();
   const table = document.getElementById('admin-new-moule-table').value;
-  const dim = document.getElementById('admin-new-moule-dim').value.trim();
+  const dimEl = document.getElementById('admin-new-moule-dim');   // champ dimension retiré de l'UI (optionnel)
+  const dim = dimEl ? dimEl.value.trim() : '';
   const messageEl = document.getElementById('admin-message');
 
   if (!no || !table) {
@@ -1243,7 +1244,7 @@ async function ajouterNouveauMoule() {
       allMoulds = await getAllMoulds();
       renderMouldsList();
       document.getElementById('admin-new-moule-no').value = '';
-      document.getElementById('admin-new-moule-dim').value = '';
+      if (dimEl) dimEl.value = '';
       messageEl.textContent = `✓ Moule ${no} créé — choisissez la table et la position`;
       openInstallModal('moule', cree.id);
       return;
@@ -1251,7 +1252,7 @@ async function ajouterNouveauMoule() {
     await creerMoule({ no_moule: no, table_nom: table, dimension_spec: dim, condition: 'good', statut });
     messageEl.textContent = `✓ Moule ${no} créé (${libelleStatut(statut)})`;
     document.getElementById('admin-new-moule-no').value = '';
-    document.getElementById('admin-new-moule-dim').value = '';
+    if (dimEl) dimEl.value = '';
     allMoulds = await getAllMoulds();
     renderMouldsList();
   } catch (e) {
