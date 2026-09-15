@@ -144,7 +144,7 @@ function renderTableGrid() {
   }
 
   grid.innerHTML = tables.map(table => `
-    <button class="table-btn" onclick="selectTable('${table.id}')">${table.nom}</button>
+    <button class="table-btn" onclick="selectTable('${table.id}')">${formatNomTable(table.nom)}</button>
   `).join('');
 }
 
@@ -162,7 +162,7 @@ function selectTable(tableId) {
   event.target.classList.add('selected');
 
   document.getElementById('selected-table-info').textContent =
-    `Table ${selectedTable.nom} sélectionnée — ${selectedTable.dimension_spec || 'Aucune dimension'}`;
+    `Table ${formatNomTable(selectedTable.nom)} sélectionnée — ${selectedTable.dimension_spec || 'Aucune dimension'}`;
 
   // Show position card
   const positionCard = document.getElementById('position-card');
@@ -227,7 +227,7 @@ async function selectPosition(positionId, type) {
 
   const typeLabel = type === 'moule' ? 'Moule' : 'Siège';
   document.getElementById('selected-position-info').textContent =
-    `Table ${selectedTable.nom} — Position ${selectedPosition.position_number} — ${typeLabel}`;
+    `Table ${formatNomTable(selectedTable.nom)} — Position ${selectedPosition.position_number} — ${typeLabel}`;
 
   // N'afficher que le scanner correspondant au type sélectionné
   document.getElementById('scan-section-moule').style.display = type === 'moule' ? 'block' : 'none';
@@ -704,7 +704,7 @@ async function renderDashboardTables() {
     return `
       <div class="table-status-card">
         <div class="table-status-header">
-          <strong>Table ${table.nom}</strong>
+          <strong>Table ${formatNomTable(table.nom)}</strong>
           <span>${filledPositions}/${totalPositions}</span>
         </div>
         <div class="table-status-bar">
@@ -758,16 +758,14 @@ function filterMoulds() {
   container.innerHTML = filtered.map(moule => {
     const statutEffectif = getStatutEffectif(moule);
     const statusClass = statutEffectif.replace(/\s+/g, '-').toLowerCase();
-    const meta = moule.position_id
-      ? `${moule.table_nom} · Pos ${getPositionNumber(moule.position_id)}`
-      : moule.table_nom;
+    const dimension = formatNomTable(moule.table_nom);
 
     return `
       <div class="piece-item ${statusClass}">
         <div class="piece-info">
           <div class="piece-line">
             <span class="piece-name">${moule.no_moule}</span>
-            <span class="piece-pos">${meta}</span>
+            <span class="piece-pos">${dimension}</span>
             <span class="piece-status">${libelleStatut(statutEffectif)}</span>
           </div>
         </div>
@@ -829,16 +827,14 @@ function filterSeats() {
   container.innerHTML = filtered.map(seat => {
     const statutEffectif = getStatutEffectif(seat);
     const statusClass = statutEffectif.replace(/\s+/g, '-').toLowerCase();
-    const meta = seat.position_id
-      ? `${seat.table_nom} · Pos ${getPositionNumber(seat.position_id)}`
-      : seat.table_nom;
+    const dimension = formatNomTable(seat.table_nom);
 
     return `
       <div class="piece-item ${statusClass}">
         <div class="piece-info">
           <div class="piece-line">
             <span class="piece-name">${seat.no_seat}</span>
-            <span class="piece-pos">${meta}</span>
+            <span class="piece-pos">${dimension}</span>
             <span class="piece-status">${libelleStatut(statutEffectif)}</span>
           </div>
         </div>
@@ -910,7 +906,7 @@ function filterHistory(history = null) {
     return `
       <tr>
         <td style="padding:0.5rem;"><strong>${icone} ${h.no_piece || '—'}</strong></td>
-        <td style="padding:0.5rem;">${tableNom}</td>
+        <td style="padding:0.5rem;">${formatNomTable(tableNom)}</td>
         <td style="padding:0.5rem;">${position}</td>
         <td style="padding:0.5rem;">${libelleStatut(h.nouveau_statut || '—')}</td>
         <td style="padding:0.5rem;font-size:0.75rem;">${fmt(h.debut_statut || h.created_at)}</td>
@@ -953,7 +949,7 @@ async function loadConfigStats() {
 // ADMIN - ADD MOULE/SEAT/TABLE
 // ============================================
 function populateAdminTableSelects() {
-  const options = allTables.map(t => `<option value="${t.nom}">${t.nom}</option>`).join('');
+  const options = allTables.map(t => `<option value="${t.nom}">${formatNomTable(t.nom)}</option>`).join('');
   document.getElementById('admin-new-moule-table').innerHTML = '<option value="">Sélectionner table...</option>' + options;
   document.getElementById('admin-new-seat-table').innerHTML = '<option value="">Sélectionner table...</option>' + options;
 }
@@ -1010,6 +1006,12 @@ async function ajouterNouveauSeat() {
   } catch (e) {
     document.getElementById('admin-message').textContent = `❌ Erreur: ${e.message}`;
   }
+}
+
+// Affichage du nom d'une table : le tiret devient « x » (« 660-1574 » → « 660 x 1574 »).
+// La base de données conserve le tiret ; c'est purement l'affichage.
+function formatNomTable(nom) {
+  return String(nom || '').replace(/\s*-\s*/g, ' x ');
 }
 
 // Le nom d'une table est aussi sa dimension : « 711-1346 » → « 711 x 1346 mm ».
@@ -1072,7 +1074,7 @@ function renderAdminTablesList() {
     const dim = t.dimension_spec ? ` <span class="hint-text">(${t.dimension_spec})</span>` : '';
     return `
       <div class="admin-table-row">
-        <span><strong>${t.nom}</strong>${dim}
+        <span><strong>${formatNomTable(t.nom)}</strong>${dim}
           <span class="hint-text">— ${nbMoules} moule(s), ${nbSeats} siège(s)</span>
         </span>
         <button class="btn-danger" onclick="supprimerTableUI('${t.id}')">Supprimer</button>

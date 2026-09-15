@@ -380,15 +380,23 @@
   color: #1a2b45;
 }
 
+/* no. de pièce | dimension | statut : toujours sur une seule ligne,
+   alignés en 3 colonnes (numéro à gauche, dimension au centre, statut à droite). */
 .piece-line {
-  display: flex;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
   align-items: baseline;
   gap: 0.75rem;
-  flex-wrap: wrap;
 }
 
 .piece-pos {
   white-space: nowrap;
+  text-align: center;
+}
+
+.piece-status {
+  white-space: nowrap;
+  text-align: right;
 }
 
 .btn-action {
