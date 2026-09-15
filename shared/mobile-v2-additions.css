@@ -383,19 +383,29 @@
   margin-top: 2px;
 }
 
+/* No. de pièce + position affichés côte à côte sur la même ligne */
+.piece-line {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
 .piece-pos {
-  font-size: 12px;
+  font-size: 13px;
   color: #888;
-  margin-top: 2px;
+  white-space: nowrap;
 }
 
 .btn-action {
   flex: 0 0 auto;
+  align-self: center;
   background: transparent;
   border: none;
   border-radius: 6px;
-  padding: 2px 6px;
-  font-size: 20px;
+  padding: 0 2px;
+  margin-left: 8px;
+  font-size: 18px;
   line-height: 1;
   cursor: pointer;
   color: #999;

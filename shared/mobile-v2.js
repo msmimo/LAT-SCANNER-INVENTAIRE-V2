@@ -748,15 +748,18 @@ function filterMoulds() {
   container.innerHTML = filtered.map(moule => {
     const statutEffectif = getStatutEffectif(moule);
     const statusClass = statutEffectif.replace(/\s+/g, '-').toLowerCase();
-    const positionInfo = moule.position_id ?
-      `<div class="piece-pos">Table ${moule.table_nom} — Position ${getPositionNumber(moule.position_id)}</div>` : '';
+    const meta = moule.position_id
+      ? `${moule.table_nom} · Pos ${getPositionNumber(moule.position_id)}`
+      : moule.table_nom;
 
     return `
       <div class="piece-item ${statusClass}">
         <div class="piece-info">
-          <div class="piece-name">${moule.no_moule} — ${moule.table_nom}</div>
+          <div class="piece-line">
+            <span class="piece-name">${moule.no_moule}</span>
+            <span class="piece-pos">${meta}</span>
+          </div>
           <div class="piece-status">${libelleStatut(statutEffectif)}</div>
-          ${positionInfo}
         </div>
         <button class="btn-action" onclick="showMouleActions('${moule.id}')">⋯</button>
       </div>
@@ -816,15 +819,18 @@ function filterSeats() {
   container.innerHTML = filtered.map(seat => {
     const statutEffectif = getStatutEffectif(seat);
     const statusClass = statutEffectif.replace(/\s+/g, '-').toLowerCase();
-    const positionInfo = seat.position_id ?
-      `<div class="piece-pos">Table ${seat.table_nom} — Position ${getPositionNumber(seat.position_id)}</div>` : '';
+    const meta = seat.position_id
+      ? `${seat.table_nom} · Pos ${getPositionNumber(seat.position_id)}`
+      : seat.table_nom;
 
     return `
       <div class="piece-item ${statusClass}">
         <div class="piece-info">
-          <div class="piece-name">${seat.no_seat} — ${seat.table_nom}</div>
+          <div class="piece-line">
+            <span class="piece-name">${seat.no_seat}</span>
+            <span class="piece-pos">${meta}</span>
+          </div>
           <div class="piece-status">${libelleStatut(statutEffectif)}</div>
-          ${positionInfo}
         </div>
         <button class="btn-action" onclick="showSeatActions('${seat.id}')">⋯</button>
       </div>
