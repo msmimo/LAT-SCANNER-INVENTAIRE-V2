@@ -9,9 +9,9 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>LAT Scanner Inventaire V2</title>
 <link rel="apple-touch-icon" href="shared/icon-192.png">
-<link rel="stylesheet" href="shared/mobile.css?v=9">
-<link rel="stylesheet" href="shared/mobile-v2-additions.css?v=9">
-<link rel="stylesheet" href="shared/dark-theme.css?v=9">
+<link rel="stylesheet" href="shared/mobile.css?v=10">
+<link rel="stylesheet" href="shared/mobile-v2-additions.css?v=10">
+<link rel="stylesheet" href="shared/dark-theme.css?v=10">
 </head>
 <body>
 <!-- Header -->
@@ -27,9 +27,9 @@
     <!-- Table Selection -->
     <div class="card">
       <h3>🏭 Sélection de table</h3>
-      <input id="table-search" type="text" class="table-search-input" placeholder="🔍 Rechercher une table (ex: A, B...)" oninput="filterTableGrid()">
+      <input id="table-search" type="text" class="table-search-input" placeholder="🔍 Rechercher une table (ex: 711, 660...)" oninput="filterTableGrid()">
       <div class="table-grid" id="table-grid">
-        <!-- Tables A-R will be generated here -->
+        <!-- Les tables sont générées dynamiquement ici -->
       </div>
       <p class="hint-text" id="selected-table-info">Aucune table sélectionnée</p>
     </div>
@@ -287,7 +287,7 @@
       <div style="background:#f5f5f5;padding:1rem;border-radius:8px;margin-top:0.5rem;">
         <p style="margin:0.5rem 0;">Total moules: <strong id="config-stat-moulds">-</strong></p>
         <p style="margin:0.5rem 0;">Total sièges: <strong id="config-stat-seats">-</strong></p>
-        <p style="margin:0.5rem 0;">Total tables: <strong id="config-stat-tables">18</strong></p>
+        <p style="margin:0.5rem 0;">Total tables: <strong id="config-stat-tables">-</strong></p>
         <p style="margin:0.5rem 0;">Installé: <strong id="config-stat-production">-</strong></p>
       </div>
 
@@ -298,9 +298,9 @@
       <div style="margin-top:2rem;padding:1rem;background:#e3f2fd;border-radius:8px;">
         <p style="margin:0;font-size:0.85rem;color:#1565c0;">
           <strong>LAT Scanner Inventaire V2</strong><br>
-          Architecture: 18 Tables (A-R) × 5 Positions<br>
-          Version: 2.0.0<br>
-          Date: 2026-09-04
+          Architecture: <span id="config-info-tables">–</span> tables × 5 positions<br>
+          Version: 2.1.0<br>
+          Date: 2026-09-15
         </p>
       </div>
     </div>
@@ -337,10 +337,17 @@
       <!-- Add Table -->
       <div class="admin-section" style="margin-top:1.5rem;">
         <h4>➕ Ajouter une table</h4>
-        <input id="admin-new-table-nom" type="text" placeholder="Nom (ex: S, T...)" style="width:100%;margin:0.5rem 0;" maxlength="10">
-        <input id="admin-new-table-dim" type="text" placeholder="Dimension" style="width:100%;margin:0.5rem 0;">
+        <input id="admin-new-table-nom" type="text" placeholder="Nom / dimension (ex: 711-1346)" style="width:100%;margin:0.5rem 0;" maxlength="20">
         <textarea id="admin-new-table-desc" placeholder="Description (optionnel)" style="width:100%;margin:0.5rem 0;min-height:60px;"></textarea>
+        <p class="hint-text" style="margin:0.25rem 0;">Le nom sert de dimension (ex. « 711-1346 » → 711 × 1346 mm). 5 positions sont créées automatiquement.</p>
         <button class="btn-primary" onclick="ajouterNouvelleTable()" style="width:100%;">Créer table</button>
+      </div>
+
+      <!-- Manage / Remove Tables -->
+      <div class="admin-section" style="margin-top:1.5rem;">
+        <h4>🗑️ Tables existantes</h4>
+        <p class="hint-text" style="margin:0.25rem 0;">Supprimer une table conserve l'historique, mais met toutes ses pièces (moules et sièges) au statut « Rebuté ».</p>
+        <div id="admin-tables-list"></div>
       </div>
 
       <p class="message" id="admin-message" style="margin-top:1rem;"></p>
@@ -380,7 +387,7 @@
 <div id="toast" class="toast" role="alert" aria-live="polite"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
-<script src="shared/api.js?v=9"></script>
-<script src="shared/mobile-v2.js?v=9"></script>
+<script src="shared/api.js?v=10"></script>
+<script src="shared/mobile-v2.js?v=10"></script>
 </body>
 </html>

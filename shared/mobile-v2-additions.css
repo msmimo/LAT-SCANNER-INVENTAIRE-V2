@@ -491,6 +491,35 @@
   transform: scale(0.98);
 }
 
+.btn-danger {
+  background: #e74c3c;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 0.5rem 0.9rem;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  touch-action: manipulation;
+  flex: 0 0 auto;
+}
+
+.btn-danger:active {
+  background: #c0392b;
+  transform: scale(0.98);
+}
+
+/* Ligne de gestion des tables (config → administration) */
+.admin-table-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid #eee;
+}
+
 /* Responsive Adjustments */
 @media (max-width: 375px) {
   .table-grid {

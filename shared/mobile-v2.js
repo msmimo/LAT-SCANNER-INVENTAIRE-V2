@@ -1,6 +1,6 @@
 // ============================================
 // LAT SCANNER INVENTAIRE V2 - Mobile App Logic
-// New Architecture: 18 Tables (A-R) with Mould & Seat Tracking
+// Tables gérées dynamiquement (ajout/suppression en config) avec suivi moules & sièges
 // ============================================
 
 // Global State
@@ -114,6 +114,7 @@ function switchTab(tabName) {
     loadConfigStats();
   } else if (tabName === 'admin') {
     populateAdminTableSelects();
+    renderAdminTablesList();
   }
 }
 
@@ -913,6 +914,7 @@ function saveOperatorName() {
 }
 
 async function loadConfigStats() {
+  allTables = await getTables();
   allMoulds = await getAllMoulds();
   allSeats = await getAllSeats();
 
@@ -920,7 +922,11 @@ async function loadConfigStats() {
 
   document.getElementById('config-stat-moulds').textContent = allMoulds.length;
   document.getElementById('config-stat-seats').textContent = allSeats.length;
+  document.getElementById('config-stat-tables').textContent = allTables.length;
   document.getElementById('config-stat-production').textContent = production;
+
+  const infoTables = document.getElementById('config-info-tables');
+  if (infoTables) infoTables.textContent = allTables.length;
 }
 
 // ============================================
@@ -986,35 +992,108 @@ async function ajouterNouveauSeat() {
   }
 }
 
-async function ajouterNouvelleTable() {
-  const nom = document.getElementById('admin-new-table-nom').value.trim().toUpperCase();
-  const dim = document.getElementById('admin-new-table-dim').value.trim();
-  const desc = document.getElementById('admin-new-table-desc').value.trim();
+// Le nom d'une table est aussi sa dimension : « 711-1346 » → « 711 x 1346 mm ».
+function dimensionDepuisNom(nom) {
+  const m = String(nom || '').trim().match(/^(\d+)\s*[-x×]\s*(\d+)$/i);
+  return m ? `${m[1]} x ${m[2]} mm` : '';
+}
 
-  if (!nom || !dim) {
-    document.getElementById('admin-message').textContent = '⚠️ Nom et dimension requis';
+async function ajouterNouvelleTable() {
+  const nom = document.getElementById('admin-new-table-nom').value.trim();
+  const descEl = document.getElementById('admin-new-table-desc');
+  const desc = descEl ? descEl.value.trim() : '';
+  const messageEl = document.getElementById('admin-message');
+
+  if (!nom) {
+    messageEl.textContent = '⚠️ Nom requis (ex: 711-1346)';
+    return;
+  }
+  if (allTables.some(t => (t.nom || '').toLowerCase() === nom.toLowerCase())) {
+    messageEl.textContent = `⚠️ La table ${nom} existe déjà`;
     return;
   }
 
   try {
     await creerTable({
       nom: nom,
-      dimension_spec: dim,
+      dimension_spec: dimensionDepuisNom(nom) || nom,
       description: desc,
       ordre_affichage: allTables.length + 1
     });
 
-    document.getElementById('admin-message').textContent = `✓ Table ${nom} créée avec 5 positions`;
+    messageEl.textContent = `✓ Table ${nom} créée avec 5 positions`;
     document.getElementById('admin-new-table-nom').value = '';
-    document.getElementById('admin-new-table-dim').value = '';
-    document.getElementById('admin-new-table-desc').value = '';
+    if (descEl) descEl.value = '';
 
     allTables = await getTables();
     allPositions = await sbSelect('table_positions', '*&order=table_id,position_number');
     renderTableGrid();
+    renderAdminTablesList();
     populateAdminTableSelects();
   } catch (e) {
-    document.getElementById('admin-message').textContent = `❌ Erreur: ${e.message}`;
+    messageEl.textContent = `❌ Erreur: ${e.message}`;
+  }
+}
+
+// Liste des tables existantes avec bouton de suppression.
+function renderAdminTablesList() {
+  const container = document.getElementById('admin-tables-list');
+  if (!container) return;
+
+  if (!allTables.length) {
+    container.innerHTML = '<p class="hint-text">Aucune table.</p>';
+    return;
+  }
+
+  container.innerHTML = allTables.map(t => {
+    const nbMoules = allMoulds.filter(m => m.table_nom === t.nom).length;
+    const nbSeats = allSeats.filter(s => s.table_nom === t.nom).length;
+    const dim = t.dimension_spec ? ` <span class="hint-text">(${t.dimension_spec})</span>` : '';
+    return `
+      <div class="admin-table-row">
+        <span><strong>${t.nom}</strong>${dim}
+          <span class="hint-text">— ${nbMoules} moule(s), ${nbSeats} siège(s)</span>
+        </span>
+        <button class="btn-danger" onclick="supprimerTableUI('${t.id}')">Supprimer</button>
+      </div>
+    `;
+  }).join('');
+}
+
+// Suppression d'une table : conserve l'historique, met ses pièces au rebut.
+async function supprimerTableUI(tableId) {
+  const table = allTables.find(t => t.id === tableId);
+  if (!table) return;
+
+  const nbMoules = allMoulds.filter(m => m.table_nom === table.nom).length;
+  const nbSeats = allSeats.filter(s => s.table_nom === table.nom).length;
+  const total = nbMoules + nbSeats;
+
+  const message = `Supprimer la table ${table.nom} ?\n\n`
+    + `${total} pièce(s) (${nbMoules} moule(s), ${nbSeats} siège(s)) passeront au statut « Rebuté ».\n`
+    + `L'historique est conservé.\n\nCette action est irréversible.`;
+  if (!window.confirm(message)) return;
+
+  const messageEl = document.getElementById('admin-message');
+  if (messageEl) messageEl.textContent = `⏳ Suppression de la table ${table.nom}...`;
+
+  try {
+    await supprimerTable(table);
+
+    // Recharger l'état
+    allTables = await getTables();
+    allPositions = await sbSelect('table_positions', '*&order=table_id,position_number');
+    allMoulds = await getAllMoulds();
+    allSeats = await getAllSeats();
+    if (selectedTable && selectedTable.id === tableId) selectedTable = null;
+
+    renderTableGrid();
+    renderAdminTablesList();
+    populateAdminTableSelects();
+
+    if (messageEl) messageEl.textContent = `✓ Table ${table.nom} supprimée — ${total} pièce(s) rebutée(s), historique conservé`;
+  } catch (e) {
+    if (messageEl) messageEl.textContent = `❌ Erreur: ${e.message}`;
   }
 }
 

@@ -1,5 +1,5 @@
 // Configuration et helpers partages — LAT SCANNER INVENTAIRE V2
-// New Architecture: 18 Tables (A-R), Each with 5 Positions, Moulds & Seats
+// Architecture: tables gérées dynamiquement (config), 5 positions par table, moules & sièges
 const SUPABASE_URL = 'https://oopxhatozrtputqvylsn.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9vcHhoYXRvenJ0cHV0cXZ5bHNuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODc3OTE3OTksImV4cCI6MjEwMzM2Nzc5OX0.uf-9JRqgd6NkgoRHGBYA5y2H1_gPMXyQ1rzkbZBv3ps';
 
@@ -33,9 +33,6 @@ const CONDITIONS = [
   'poor',     // Mauvais
   'damaged'   // Endommagé
 ];
-
-// 18 Tables (A-R)
-const TABLE_LETTERS = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R'];
 
 function nomOperateur() {
   let nom = localStorage.getItem('lat_operateur');
@@ -118,7 +115,8 @@ async function enregistrerHistorique({ piece, typePiece, ancienStatut, nouveauSt
     nouveau_statut: nouveauStatut,
     type_action: typeAction,
     position_id: position ? position.id : null,
-    code_position: position ? position.code_position : null,
+    position_number: position ? position.position_number : null,
+    table_nom: (piece && piece.table_nom) || null,
     debut_statut: maintenant_,
     notes: notes || null
   });
@@ -363,6 +361,69 @@ async function creerTable({ nom, dimension_spec, description, ordre_affichage })
   }
 
   return table;
+}
+
+// Delete a table WITHOUT deleting history.
+// Toutes les pièces (moules et sièges) installées sur cette table OU qui lui
+// appartiennent passent au statut « Rebuté » (retirées de toute position).
+// L'historique est conservé ; chaque mise au rebut est journalisée.
+async function supprimerTable(table) {
+  const results = { rebuteMoules: 0, rebuteSeats: 0 };
+
+  // 1. Rebuter tous les moules de la table
+  const moulds = await sbSelect('moulds', `*&table_nom=eq.${encodeURIComponent(table.nom)}`);
+  for (const m of (moulds || [])) {
+    if (m.statut !== 'Rebuté') {
+      await enregistrerHistorique({
+        piece: m,
+        typePiece: 'moule',
+        ancienStatut: m.statut,
+        nouveauStatut: 'Rebuté',
+        typeAction: 'rebut_suppression_table',
+        notes: `Table ${table.nom} supprimée — moule rebuté`
+      });
+    }
+    await sbUpdate('moulds', m.id, { statut: 'Rebuté', position_id: null });
+    results.rebuteMoules++;
+  }
+
+  // 2. Rebuter tous les sièges de la table
+  const seats = await sbSelect('seats', `*&table_nom=eq.${encodeURIComponent(table.nom)}`);
+  for (const s of (seats || [])) {
+    if (s.statut !== 'Rebuté') {
+      await enregistrerHistorique({
+        piece: s,
+        typePiece: 'seat',
+        ancienStatut: s.statut,
+        nouveauStatut: 'Rebuté',
+        typeAction: 'rebut_suppression_table',
+        notes: `Table ${table.nom} supprimée — siège rebuté`
+      });
+    }
+    await sbUpdate('seats', s.id, { statut: 'Rebuté', position_id: null });
+    results.rebuteSeats++;
+  }
+
+  // 3. Supprimer les positions de la table (l'historique garde une trace via
+  //    position_id -> ON DELETE SET NULL, la ligne d'historique reste intacte)
+  const positions = await sbSelect('table_positions', `*&table_id=eq.${table.id}`);
+  for (const p of (positions || [])) {
+    await sbDelete('table_positions', p.id);
+  }
+
+  // 4. Journal d'audit
+  await enregistrerAudit({
+    typeEntite: 'table',
+    entiteId: table.id,
+    action: 'delete',
+    avant: table,
+    raison: `Suppression table ${table.nom} (config)`
+  });
+
+  // 5. Supprimer la table elle-même
+  await sbDelete('tables', table.id);
+
+  return results;
 }
 
 // Update moule details
