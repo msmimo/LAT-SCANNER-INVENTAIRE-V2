@@ -151,7 +151,23 @@ async function triggerEmailNotification(notes = '') {
 
 // Get all tables with positions
 async function getTables() {
-  return sbSelect('tables', '*&order=ordre_affichage');
+  const tables = await sbSelect('tables', '*&order=ordre_affichage');
+  // Trier par dimension croissante : d'abord le 1er nombre, puis le 2e
+  // (ex: 660-1346 s'affiche avant 660-1473). Repli alphanumérique si le
+  // nom n'est pas au format « NNN-NNN ».
+  return tables.sort((a, b) => {
+    const pa = parseNomDimension(a.nom);
+    const pb = parseNomDimension(b.nom);
+    if (pa && pb) return (pa[0] - pb[0]) || (pa[1] - pb[1]);
+    return String(a.nom || '').localeCompare(String(b.nom || ''), 'fr', { numeric: true });
+  });
+}
+
+// Extrait les deux nombres d'un nom de table « 711-1346 » -> [711, 1346].
+// Renvoie null si le nom n'est pas au format attendu.
+function parseNomDimension(nom) {
+  const m = String(nom || '').trim().match(/^(\d+)\s*[-x×]\s*(\d+)$/i);
+  return m ? [parseInt(m[1], 10), parseInt(m[2], 10)] : null;
 }
 
 // Get positions for a specific table

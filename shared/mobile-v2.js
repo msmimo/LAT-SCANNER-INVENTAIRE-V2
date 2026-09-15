@@ -157,8 +157,12 @@ function selectTable(tableId) {
     `Table ${selectedTable.nom} sélectionnée — ${selectedTable.dimension_spec || 'Aucune dimension'}`;
 
   // Show position card
-  document.getElementById('position-card').style.display = 'block';
+  const positionCard = document.getElementById('position-card');
+  positionCard.style.display = 'block';
   renderPositionGrid();
+
+  // Amener l'utilisateur directement à la zone de scan (plan de la table)
+  positionCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
 
   // Haptic feedback
   if (navigator.vibrate) navigator.vibrate(10);
