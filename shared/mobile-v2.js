@@ -1193,7 +1193,7 @@ function populateAdminTableSelects() {
 }
 
 // Statuts qu'un utilisateur peut choisir manuellement (« Prêt » reste automatique).
-const STATUTS_MANUELS = ['Mise en production', 'Chez Huot', 'Inventaire - À entretenir', 'Remisé', 'Rebuté'];
+const STATUTS_MANUELS = ['Mise en production', 'Chez Huot', 'Inventaire - À entretenir', 'Remisé', 'Rebuté', 'Prêt'];
 
 // Demande un statut via une invite numérotée.
 // Renvoie la valeur interne, null si annulé, ou undefined si le choix est invalide.
