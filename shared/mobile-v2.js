@@ -32,35 +32,43 @@ const pageTitles = {
 // INITIALIZATION
 // ============================================
 async function init() {
+  // 1) Les tables d'abord, et on affiche la grille TOUT DE SUITE.
+  //    Ainsi, une panne réseau sur une autre requête (positions, moules,
+  //    sièges…) ne peut plus vider l'écran de scan : les tables restent visibles.
   try {
-    // Load all data
     allTables = await getTables();
+    renderTableGrid();
+    populateAdminTableSelects();
+  } catch (e) {
+    console.error('❌ Erreur de chargement des tables:', e);
+    showToast('Erreur de chargement des tables. Vérifiez la connexion.', 'error');
+  }
+
+  // 2) Le reste des données, dans un bloc séparé : un échec ici ne doit
+  //    pas empêcher la sélection de table ci-dessus.
+  try {
     allPositions = await sbSelect('table_positions', '*&order=table_id,position_number');
     allMoulds = await getAllMoulds();
     allSeats = await getAllSeats();
 
-    // Render initial views
-    renderTableGrid();
     updateDashboardStats();
     renderMouldsList();
     renderSeatsList();
     loadHistory();
     loadConfigStats();
-
-    // Populate admin dropdowns
-    populateAdminTableSelects();
-
-    // Load operator name
-    const savedOperator = localStorage.getItem('lat_operateur');
-    if (savedOperator) {
-      document.getElementById('config-operator-name').value = savedOperator;
-    }
-
-    console.log('✅ App initialized successfully');
   } catch (e) {
-    console.error('❌ Initialization error:', e);
-    showToast('Erreur de configuration. Vérifiez Supabase.', 'error');
+    console.error('❌ Erreur de chargement des données:', e);
+    showToast('Certaines données n\'ont pas pu être chargées.', 'error');
   }
+
+  // 3) Nom de l'opérateur (localStorage, indépendant du réseau).
+  const savedOperator = localStorage.getItem('lat_operateur');
+  if (savedOperator) {
+    const opEl = document.getElementById('config-operator-name');
+    if (opEl) opEl.value = savedOperator;
+  }
+
+  console.log('✅ App initialized');
 }
 
 // ============================================
@@ -651,7 +659,9 @@ function getStatutEffectif(piece) {
 // Libellé affiché : le statut interne "Mise en production" est présenté
 // comme "Installé" à l'utilisateur (la valeur stockée reste inchangée).
 function libelleStatut(statut) {
-  return statut === 'Mise en production' ? 'Installé' : statut;
+  if (statut === 'Mise en production') return 'Installé';
+  if (statut === 'Inventaire - À entretenir') return 'À entretenir';
+  return statut;
 }
 
 // ============================================
