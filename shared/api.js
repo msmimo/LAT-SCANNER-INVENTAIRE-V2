@@ -43,8 +43,25 @@ function nomOperateur() {
   return nom;
 }
 
+// Instant précis en UTC (ISO 8601). On stocke TOUJOURS en UTC : l'affichage le
+// convertit en heure de Toronto (voir formatDateToronto), ce qui gère
+// automatiquement l'heure avancée (EST/EDT). Stocker l'heure murale de Toronto
+// dans une colonne timestamptz fausserait l'instant de 4 à 5 heures.
 function maintenant() {
-  return new Date().toLocaleString('sv-SE', { timeZone: 'America/Toronto' });
+  return new Date().toISOString();
+}
+
+// Formate un instant (chaîne ISO/UTC stockée) en heure de Toronto, avec gestion
+// automatique de l'heure avancée (EST/EDT). Retourne '' si la date est absente.
+// `opts` permet de surcharger le format (ex. { second: undefined }).
+function formatDateToronto(d, opts) {
+  if (!d) return '';
+  return new Date(d).toLocaleString('fr-CA', {
+    timeZone: 'America/Toronto',
+    year: 'numeric', month: '2-digit', day: '2-digit',
+    hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false,
+    ...(opts || {}),
+  });
 }
 
 async function sbFetch(path, options = {}) {

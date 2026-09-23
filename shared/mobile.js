@@ -714,7 +714,7 @@ async function chargerHistoriqueRecent() {
       <div class="history-item">
         <div class="history-header">
           <span class="piece-no">${h.no_piece}</span>
-          <span class="timestamp">${new Date(h.debut_statut).toLocaleString('fr-CA', {
+          <span class="timestamp">${new Date(h.debut_statut).toLocaleString('fr-CA', { timeZone: 'America/Toronto',
             year: 'numeric',
             month: '2-digit',
             day: '2-digit',
@@ -850,7 +850,7 @@ function afficherSection(sectionKey, pieces) {
         <div>
           <div class="piece-no">${p.no_piece}</div>
           ${position ? `<div class="piece-info">${position.code_position}</div>` : ''}
-          <div class="piece-info">${new Date(p.updated_at).toLocaleString('fr-CA', {
+          <div class="piece-info">${new Date(p.updated_at).toLocaleString('fr-CA', { timeZone: 'America/Toronto',
             year: 'numeric',
             month: '2-digit',
             day: '2-digit',
@@ -972,7 +972,7 @@ async function chargerPiecesHuot() {
       <div class="piece-item">
         <div>
           <div class="piece-no">${p.no_piece}</div>
-          <div class="piece-info">${new Date(p.updated_at).toLocaleString('fr-CA', {
+          <div class="piece-info">${new Date(p.updated_at).toLocaleString('fr-CA', { timeZone: 'America/Toronto',
             year: 'numeric',
             month: '2-digit',
             day: '2-digit',
@@ -1063,7 +1063,7 @@ async function chargerExpeditionsRecentes() {
       <div class="history-item">
         <div class="history-header">
           <span class="piece-no">${e.no_piece}</span>
-          <span class="timestamp">${new Date(e.expedie_le).toLocaleString('fr-CA', {
+          <span class="timestamp">${new Date(e.expedie_le).toLocaleString('fr-CA', { timeZone: 'America/Toronto',
             year: 'numeric',
             month: '2-digit',
             day: '2-digit',
@@ -1664,7 +1664,7 @@ function afficherHistory() {
       ? historyPositionToTable[h.position_id]
       : '—';
 
-    const startDate = h.debut_statut ? new Date(h.debut_statut).toLocaleString('fr-CA', {
+    const startDate = h.debut_statut ? new Date(h.debut_statut).toLocaleString('fr-CA', { timeZone: 'America/Toronto',
       year: 'numeric',
       month: '2-digit',
       day: '2-digit',
@@ -1674,7 +1674,7 @@ function afficherHistory() {
       hour12: false
     }).replace(',', '') : '—';
 
-    const endDate = h.fin_statut ? new Date(h.fin_statut).toLocaleString('fr-CA', {
+    const endDate = h.fin_statut ? new Date(h.fin_statut).toLocaleString('fr-CA', { timeZone: 'America/Toronto',
       year: 'numeric',
       month: '2-digit',
       day: '2-digit',

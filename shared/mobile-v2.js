@@ -1144,7 +1144,7 @@ function filterHistory(history = null) {
     return;
   }
 
-  const fmt = d => d ? new Date(d).toLocaleString('fr-CA', { dateStyle: 'short', timeStyle: 'short' }) : '';
+  const fmt = d => d ? new Date(d).toLocaleString('fr-CA', { timeZone: 'America/Toronto', dateStyle: 'short', timeStyle: 'short' }) : '';
 
   tbody.innerHTML = filtered.map(h => {
     // Retrouver la table (lettre) et la position (1-5) de cet enregistrement
