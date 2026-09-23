@@ -1,8 +1,8 @@
 -- ============================================================================
 -- Planification du rapport courriel (Edge Function « send-report »)
 -- ----------------------------------------------------------------------------
--- À exécuter UNE FOIS dans le SQL Editor du projet Supabase V2
--- (oopxhatozrtputqvylsn), APRÈS avoir déployé la fonction :
+-- À exécuter UNE FOIS dans le SQL Editor du projet Supabase TABLE-APEX
+-- (zkulkxmwgfkgsdmfuohc), APRÈS avoir déployé la fonction :
 --   supabase functions deploy send-report --no-verify-jwt
 --
 -- Un job pg_cron appelle la fonction toutes les 5 minutes. La fonction gère
@@ -30,7 +30,7 @@ select cron.schedule(
   '*/5 * * * *',
   $$
   select net.http_post(
-    url     := 'https://oopxhatozrtputqvylsn.supabase.co/functions/v1/send-report',
+    url     := 'https://zkulkxmwgfkgsdmfuohc.supabase.co/functions/v1/send-report',
     headers := jsonb_build_object('Content-Type', 'application/json'),
     body    := '{}'::jsonb
   );
