@@ -20,7 +20,7 @@
 
 // ⬇⬇⬇  À MODIFIER PAR L'UTILISATEUR  ⬇⬇⬇ ------------------------------------
 // Destinataire(s) du rapport. Séparez plusieurs adresses par une virgule.
-const TO: string[] = ["destinataire@rtacoulee.com"];
+const TO: string[] = ["mengyun.liu@riotinto.com"];
 // Adresse d'expédition. Doit appartenir à un domaine vérifié dans Resend.
 const FROM = "Inventaire LAT <rapport@rtacoulee.com>";
 // Objet du courriel.
@@ -84,6 +84,28 @@ interface HistRow {
   fin_statut: string | null;
 }
 
+// Statut « installé » : valeur stockée en base (l'app l'affiche « Installé »).
+const STATUT_INSTALLE = "Mise en production";
+
+// Libellé affiché du statut (identique à l'app : shared/mobile-v2.js libelleStatut).
+function libelleStatut(statut: string): string {
+  if (statut === STATUT_INSTALLE) return "Installé";
+  if (statut === "Inventaire - À entretenir") return "À entretenir";
+  return statut;
+}
+
+// Table et position ne sont pertinentes que si la pièce est installée ;
+// sinon on laisse ces colonnes vides (règle demandée).
+function tablePos(r: HistRow): { table: string; position: string } {
+  if (r.nouveau_statut === STATUT_INSTALLE) {
+    return {
+      table: r.table_nom ?? "",
+      position: r.position_number != null ? String(r.position_number) : "",
+    };
+  }
+  return { table: "", position: "" };
+}
+
 // Construit le corps HTML du rapport à partir des lignes d'historique.
 function buildHtml(rows: HistRow[]): string {
   const enCours = rows.filter((r) => !r.fin_statut).length;
@@ -92,6 +114,7 @@ function buildHtml(rows: HistRow[]): string {
       const enCoursBadge = r.fin_statut
         ? esc(fmt(r.fin_statut))
         : '<span style="color:#0a7d29;font-weight:600">en cours</span>';
+      const tp = tablePos(r);
       return `<tr>
         <td style="padding:6px 10px;border-bottom:1px solid #eee">${esc(
           r.type_piece === "moule" ? "Moule" : "Siège",
@@ -100,13 +123,13 @@ function buildHtml(rows: HistRow[]): string {
           r.no_piece,
         )}</td>
         <td style="padding:6px 10px;border-bottom:1px solid #eee">${esc(
-          r.table_nom,
-        )}</td>
-        <td style="padding:6px 10px;border-bottom:1px solid #eee;text-align:center">${esc(
-          r.position_number ?? "—",
+          libelleStatut(r.nouveau_statut),
         )}</td>
         <td style="padding:6px 10px;border-bottom:1px solid #eee">${esc(
-          r.nouveau_statut,
+          tp.table,
+        )}</td>
+        <td style="padding:6px 10px;border-bottom:1px solid #eee;text-align:center">${esc(
+          tp.position,
         )}</td>
         <td style="padding:6px 10px;border-bottom:1px solid #eee;white-space:nowrap">${esc(
           fmt(r.debut_statut),
@@ -127,9 +150,9 @@ function buildHtml(rows: HistRow[]): string {
         <tr style="background:#f4f4f4;text-align:left">
           <th style="padding:8px 10px;border-bottom:2px solid #ddd">Type</th>
           <th style="padding:8px 10px;border-bottom:2px solid #ddd">No pièce</th>
+          <th style="padding:8px 10px;border-bottom:2px solid #ddd">Statut</th>
           <th style="padding:8px 10px;border-bottom:2px solid #ddd">Table</th>
           <th style="padding:8px 10px;border-bottom:2px solid #ddd;text-align:center">Position</th>
-          <th style="padding:8px 10px;border-bottom:2px solid #ddd">Statut</th>
           <th style="padding:8px 10px;border-bottom:2px solid #ddd">Début</th>
           <th style="padding:8px 10px;border-bottom:2px solid #ddd">Fin</th>
         </tr>
@@ -151,25 +174,26 @@ function buildCsv(rows: HistRow[]): string {
   const header = [
     "Type",
     "No piece",
+    "Statut",
     "Table",
     "Position",
-    "Statut",
     "Debut",
     "Fin",
   ];
-  const lines = rows.map((r) =>
-    [
+  const lines = rows.map((r) => {
+    const tp = tablePos(r);
+    return [
       r.type_piece === "moule" ? "Moule" : "Siège",
       r.no_piece,
-      r.table_nom ?? "",
-      r.position_number ?? "",
-      r.nouveau_statut,
+      libelleStatut(r.nouveau_statut),
+      tp.table,
+      tp.position,
       fmt(r.debut_statut),
       r.fin_statut ? fmt(r.fin_statut) : "en cours",
     ]
       .map(csvCell)
-      .join(",")
-  );
+      .join(",");
+  });
   // BOM UTF-8 pour qu'Excel affiche correctement les accents.
   return "﻿" + [header.map(csvCell).join(","), ...lines].join("\r\n");
 }
@@ -212,8 +236,10 @@ async function sendEmail(html: string, csv: string) {
 Deno.serve(async () => {
   try {
     // 1. Notifications non envoyées (les plus anciennes d'abord).
+    //    La table `pending_notification` de ce projet ne possède que la colonne
+    //    `sent_snapshot` (pas de `sent`/`sent_history`).
     const pending: { id: string; triggered_at: string }[] = await sb(
-      "pending_notification?sent=eq.false&select=id,triggered_at&order=triggered_at.asc",
+      "pending_notification?sent_snapshot=eq.false&select=id,triggered_at&order=triggered_at.asc",
     );
 
     if (!pending || pending.length === 0) {
@@ -250,7 +276,7 @@ Deno.serve(async () => {
     await sb(`pending_notification?id=in.(${ids.join(",")})`, {
       method: "PATCH",
       headers: { Prefer: "return=minimal" },
-      body: JSON.stringify({ sent: true, sent_snapshot: true, sent_history: true }),
+      body: JSON.stringify({ sent_snapshot: true }),
     });
 
     return new Response(

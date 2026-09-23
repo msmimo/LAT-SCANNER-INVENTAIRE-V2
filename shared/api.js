@@ -107,7 +107,7 @@ async function enregistrerHistorique({ piece, typePiece, ancienStatut, nouveauSt
     });
   }
 
-  return sbInsert('historique', {
+  const ligne = await sbInsert('historique', {
     piece_id: piece.id,
     no_piece: noPiece,
     type_piece: typePieceFinal,
@@ -120,6 +120,14 @@ async function enregistrerHistorique({ piece, typePiece, ancienStatut, nouveauSt
     debut_statut: maintenant_,
     notes: notes || null
   });
+
+  // Toute modification journalisée (installation, changement de statut, retrait,
+  // mise au rebut lors d'une suppression de table…) déclenche un courriel.
+  await triggerEmailNotification(
+    (noPiece ? noPiece + ' — ' : '') + (nouveauStatut || 'modification')
+  );
+
+  return ligne;
 }
 
 async function enregistrerAudit({ typeEntite, entiteId, action, avant, apres, raison }) {
@@ -273,22 +281,49 @@ async function installerSeat(seatId, positionId) {
 
 // Remove moule from position (change status to Remisé)
 async function retirerMoule(mouleId) {
+  const moule = (await sbSelect('moulds', `*&id=eq.${mouleId}`) || [])[0];
+  const ancienStatut = moule ? moule.statut : null;
+
   await sbUpdate('moulds', mouleId, {
     statut: 'Remisé',
     position_id: null
   });
+
+  if (moule) {
+    await enregistrerHistorique({
+      piece: moule, typePiece: 'moule',
+      ancienStatut, nouveauStatut: 'Remisé',
+      typeAction: 'retrait_moule', position: null,
+      notes: `Moule ${moule.no_moule} retiré de sa position`
+    });
+  }
 }
 
 // Remove seat from position (change status to Remisé)
 async function retirerSeat(seatId) {
+  const seat = (await sbSelect('seats', `*&id=eq.${seatId}`) || [])[0];
+  const ancienStatut = seat ? seat.statut : null;
+
   await sbUpdate('seats', seatId, {
     statut: 'Remisé',
     position_id: null
   });
+
+  if (seat) {
+    await enregistrerHistorique({
+      piece: seat, typePiece: 'seat',
+      ancienStatut, nouveauStatut: 'Remisé',
+      typeAction: 'retrait_seat', position: null,
+      notes: `Siège ${seat.no_seat} retiré de sa position`
+    });
+  }
 }
 
 // Change moule status (for Huot, maintenance, etc.)
 async function changerStatutMoule(mouleId, nouveauStatut) {
+  const moule = (await sbSelect('moulds', `*&id=eq.${mouleId}`) || [])[0];
+  const ancienStatut = moule ? moule.statut : null;
+
   const updates = { statut: nouveauStatut };
 
   // If not "Mise en production", clear position
@@ -297,10 +332,22 @@ async function changerStatutMoule(mouleId, nouveauStatut) {
   }
 
   await sbUpdate('moulds', mouleId, updates);
+
+  if (moule) {
+    await enregistrerHistorique({
+      piece: moule, typePiece: 'moule',
+      ancienStatut, nouveauStatut,
+      typeAction: 'changement_statut', position: null,
+      notes: `Statut du moule ${moule.no_moule} : ${nouveauStatut}`
+    });
+  }
 }
 
 // Change seat status
 async function changerStatutSeat(seatId, nouveauStatut) {
+  const seat = (await sbSelect('seats', `*&id=eq.${seatId}`) || [])[0];
+  const ancienStatut = seat ? seat.statut : null;
+
   const updates = { statut: nouveauStatut };
 
   // If not "Mise en production", clear position
@@ -309,6 +356,15 @@ async function changerStatutSeat(seatId, nouveauStatut) {
   }
 
   await sbUpdate('seats', seatId, updates);
+
+  if (seat) {
+    await enregistrerHistorique({
+      piece: seat, typePiece: 'seat',
+      ancienStatut, nouveauStatut,
+      typeAction: 'changement_statut', position: null,
+      notes: `Statut du siège ${seat.no_seat} : ${nouveauStatut}`
+    });
+  }
 }
 
 // Get piece by number (searches in both moulds and seats)

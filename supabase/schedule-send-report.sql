@@ -1,14 +1,18 @@
 -- ============================================================================
 -- Planification du rapport courriel (Edge Function « send-report »)
 -- ----------------------------------------------------------------------------
--- À exécuter UNE FOIS dans le SQL Editor du projet Supabase TABLE-APEX
--- (zkulkxmwgfkgsdmfuohc), APRÈS avoir déployé la fonction :
+-- À exécuter UNE FOIS dans le SQL Editor du projet Supabase ULAT TABLE
+-- (oopxhatozrtputqvylsn), APRÈS avoir déployé la fonction :
 --   supabase functions deploy send-report --no-verify-jwt
 --
 -- Un job pg_cron appelle la fonction toutes les 5 minutes. La fonction gère
 -- elle-même la temporisation (elle n'envoie que si la plus ancienne
 -- notification non envoyée a au moins 5 minutes), donc l'appeler souvent est
 -- sans danger : la plupart des appels ne font rien.
+--
+-- ⚠️ Ancienne fonction : si un cron appelle encore « send-inventory-report »
+-- (l'ancien rapport snapshot), désactivez-le pour éviter des courriels en double :
+--   select cron.unschedule('<nom_du_job>');  -- voir « select * from cron.job; »
 -- ============================================================================
 
 -- 1. Extensions nécessaires (déjà activées sur la plupart des projets)
@@ -30,7 +34,7 @@ select cron.schedule(
   '*/5 * * * *',
   $$
   select net.http_post(
-    url     := 'https://zkulkxmwgfkgsdmfuohc.supabase.co/functions/v1/send-report',
+    url     := 'https://oopxhatozrtputqvylsn.supabase.co/functions/v1/send-report',
     headers := jsonb_build_object('Content-Type', 'application/json'),
     body    := '{}'::jsonb
   );
