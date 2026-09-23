@@ -423,14 +423,15 @@ async function installerMouleByNumber(number) {
     // Install moule (déplace automatiquement toute pièce déjà à cette position)
     const res = await installerMoule(moule.id, selectedPosition.id);
 
-    // Journaliser les pièces déplacées (remises en inventaire)
+    // Journaliser les pièces déplacées : installerMoule les passe à
+    // « À entretenir » (pas « Remisé »), donc l'historique doit refléter ce statut.
     if (res && res.displaced && res.displaced.length) {
       for (const ex of res.displaced) {
         await enregistrerHistorique({
           piece: { id: ex.id, no_piece: ex.no_moule },
           typePiece: 'moule',
           ancienStatut: ex.statut,
-          nouveauStatut: 'Remisé',
+          nouveauStatut: 'Inventaire - À entretenir',
           typeAction: 'remplacement_moule',
           position: null,
           notes: `Moule ${ex.no_moule} retiré de ${dest} (remplacé par ${number})`
@@ -598,14 +599,15 @@ async function installerSeatByNumber(number) {
 
     const res = await installerSeat(seat.id, selectedPosition.id);
 
-    // Journaliser les pièces déplacées (remises en inventaire)
+    // Journaliser les pièces déplacées : installerSeat les passe à
+    // « À entretenir » (pas « Remisé »), donc l'historique doit refléter ce statut.
     if (res && res.displaced && res.displaced.length) {
       for (const ex of res.displaced) {
         await enregistrerHistorique({
           piece: { id: ex.id, no_piece: ex.no_seat },
           typePiece: 'seat',
           ancienStatut: ex.statut,
-          nouveauStatut: 'Remisé',
+          nouveauStatut: 'Inventaire - À entretenir',
           typeAction: 'remplacement_seat',
           position: null,
           notes: `Siège ${ex.no_seat} retiré de ${dest} (remplacé par ${number})`
