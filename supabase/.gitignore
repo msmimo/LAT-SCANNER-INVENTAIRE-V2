@@ -1,0 +1,4 @@
+# Supabase CLI local state (per-machine / per-account) — ne pas versionner
+.branches
+.temp
+.env
