@@ -139,14 +139,69 @@ function buildHtml(rows: HistRow[]): string {
   </body></html>`;
 }
 
-async function sendEmail(html: string) {
+// Échappe une valeur pour le format CSV (RFC 4180) : on entoure de guillemets
+// et on double les guillemets internes.
+function csvCell(v: unknown): string {
+  const s = String(v ?? "");
+  return `"${s.replace(/"/g, '""')}"`;
+}
+
+// Construit le contenu CSV du rapport (mêmes colonnes que le tableau HTML).
+function buildCsv(rows: HistRow[]): string {
+  const header = [
+    "Type",
+    "No piece",
+    "Table",
+    "Position",
+    "Statut",
+    "Debut",
+    "Fin",
+  ];
+  const lines = rows.map((r) =>
+    [
+      r.type_piece === "moule" ? "Moule" : "Siège",
+      r.no_piece,
+      r.table_nom ?? "",
+      r.position_number ?? "",
+      r.nouveau_statut,
+      fmt(r.debut_statut),
+      r.fin_statut ? fmt(r.fin_statut) : "en cours",
+    ]
+      .map(csvCell)
+      .join(",")
+  );
+  // BOM UTF-8 pour qu'Excel affiche correctement les accents.
+  return "﻿" + [header.map(csvCell).join(","), ...lines].join("\r\n");
+}
+
+// Encode une chaîne UTF-8 en base64 (pour la pièce jointe Resend).
+function toBase64(str: string): string {
+  const bytes = new TextEncoder().encode(str);
+  let bin = "";
+  for (const b of bytes) bin += String.fromCharCode(b);
+  return btoa(bin);
+}
+
+async function sendEmail(html: string, csv: string) {
+  const stamp = new Date().toISOString().slice(0, 10);
   const res = await fetch("https://api.resend.com/emails", {
     method: "POST",
     headers: {
       Authorization: `Bearer ${RESEND_API_KEY}`,
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({ from: FROM, to: TO, subject: SUBJECT, html }),
+    body: JSON.stringify({
+      from: FROM,
+      to: TO,
+      subject: SUBJECT,
+      html,
+      attachments: [
+        {
+          filename: `rapport-inventaire-${stamp}.csv`,
+          content: toBase64(csv),
+        },
+      ],
+    }),
   });
   if (!res.ok) {
     throw new Error(`Resend ${res.status}: ${await res.text()}`);
@@ -187,8 +242,8 @@ Deno.serve(async () => {
       "historique?select=type_piece,no_piece,table_nom,position_number,nouveau_statut,debut_statut,fin_statut&order=type_piece.asc,no_piece.asc,debut_statut.asc",
     );
 
-    // 4. Envoi.
-    await sendEmail(buildHtml(rows || []));
+    // 4. Envoi (corps HTML + pièce jointe CSV avec les mêmes données).
+    await sendEmail(buildHtml(rows || []), buildCsv(rows || []));
 
     // 5. Marquer toutes les notifications en attente comme envoyées.
     const ids = pending.map((p) => p.id);
